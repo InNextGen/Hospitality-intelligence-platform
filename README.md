@@ -26,11 +26,11 @@ All scraped data, news analyses, and ad strategies are embedded and stored in a 
 
 ### 3. 💻 Application & Interface Layer
 
-<img width="1440" height="778" alt="Screenshot 2569-04-06 at 00 58 14" src="https://github.com/user-attachments/assets/0b765896-713b-460d-a9a1-7e22decb7e03" />
+<img width="1440" height="778" alt="appsheet_proposal" src="https://github.com/user-attachments/assets/0647da59-cc5c-4264-a3f2-35d78fd27b3b" />
 
 - **Backend (AppSheet):** Acts as the operational hub and **AI Proposal Generator**, turning the raw competitor data into actionable marketing proposals.
 
-<img width="1440" height="778" alt="Screenshot 2569-04-06 at 01 00 51" src="https://github.com/user-attachments/assets/d014791e-db17-48c5-a158-9ceb8d3bb5dd" />
+<img width="1440" height="778" alt="base44_proposal" src="https://github.com/user-attachments/assets/00a56362-0aaf-48e6-88ec-a280acaa3206" />
 
 - **Frontend (Base44):** A custom-built, user-friendly Web App interface that allows hotel staff to interact with the insights and generated proposals seamlessly.
 - **Telegram AI Agent:** A conversational interface for instant marketing consultations based on real-time vector data.
