@@ -1,0 +1,1505 @@
+{
+  "name": "(ก) AI Competitor Research",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "db3d677a-122e-4dc1-a5ef-917dc0c2c81c",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Social_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "text": "={{ $('Loop Over Items').item.json.text }}",
+            "url": "={{ $('Loop Over Items').item.json.url }}",
+            "likes": "={{ $('Loop Over Items').item.json.likes }}",
+            "time": "={{ $('Loop Over Items').item.json.time }}",
+            "pageName": "={{ $('Loop Over Items').item.json.pageName }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "likes",
+              "displayName": "likes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pageName",
+              "displayName": "pageName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "952f5f2e-65ac-47ce-a6cd-c6e49e75adc5",
+      "name": "Append or update row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        480,
+        -192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      },
+      "notes": "อัพเดตลง Sheet (Log)"
+    },
+    {
+      "parameters": {
+        "formTitle": "Competitor Research Automation",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Facebook or Instagram",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Facebook"
+                  },
+                  {
+                    "option": "Instagram"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "url"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -1312,
+        -688
+      ],
+      "id": "b014e512-5a3e-40da-996d-19aab95fde2d",
+      "name": "On form submission",
+      "webhookId": "e9de790b-5cd3-4ebe-86a1-0f0a932b55d2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ca5fe5ea-fe00-43d5-99d5-09d0502f304e",
+              "leftValue": "={{ $json.URL }}",
+              "rightValue": "=facebook",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        -448
+      ],
+      "id": "84ee6d2b-0de1-4262-a149-74281bb6e842",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -192,
+        -512
+      ],
+      "id": "3d17c3af-517a-4a84-a48a-ca52f84801aa",
+      "name": "Merge",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d7628b8-4aed-4e2c-8b06-0095b7490433",
+              "name": "text",
+              "value": "={{ $json.text || $json.postText || $json.intro || $json.caption || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "0b6a5ee7-63c3-4217-ac3e-f2432baf490c",
+              "name": "url",
+              "value": "={{ $json.url || $json.postUrl || $json.pageUrl || $json.link || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "727d90ee-5ca9-4d28-b2ab-774f37614fad",
+              "name": "likes",
+              "value": "={{ $json.likes || $json.likesCount || $json.reactionCount || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "15d158ca-0669-4eae-91c0-b7cb97425951",
+              "name": "time",
+              "value": "={{\n  ($json.timestamp || $json.time || $json.date || $now).toString().includes('T') || $json.timestamp || $json.time || $json.date\n  ? DateTime.fromISO($json.timestamp || $json.time || $json.date || $now.toISO()).setZone('Asia/Bangkok').toFormat('dd/MM/yyyy HH:mm')\n  : DateTime.fromMillis(Number($json.timestamp) * 1000).setZone('Asia/Bangkok').toFormat('dd/MM/yyyy HH:mm')\n}}",
+              "type": "string"
+            },
+            {
+              "id": "1d4e073d-431d-4f6c-9555-3c25c8ab5f4a",
+              "name": "pageName",
+              "value": "={{ $json.ownerUsername || $json.pageName || $json.username || $json.name || 'Unknown_Page' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -512
+      ],
+      "id": "350b858a-3c46-47cd-8cb6-2f1bc93d68a9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items?token=YOUR_APIFY_API_KEY",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR_APIFY_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"directUrls\": [ \"{{ $json.url }}\" ],\n  \"resultsLimit\": 3,\n  \"resultsType\": \"posts\",\n  \"searchType\": \"user\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -512,
+        -416
+      ],
+      "id": "c696c78c-4d7c-4143-a86f-5e643a821233",
+      "name": "Apify : Instagram"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~facebook-posts-scraper/run-sync-get-dataset-items?token=YOUR_APIFY_API_KEY",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR_APIFY_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startUrls\": [\n    { \"url\": \"{{ $json.URL }}\" }\n  ],\n  \"resultsLimit\": 3,\n  \"daysBack\": 365,\n  \"view\": \"Standard\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -512,
+        -592
+      ],
+      "id": "72aca3cd-4478-4d1a-95bf-25ffe15e5a58",
+      "name": "Apify : Facebook"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.2-chat-latest",
+          "mode": "list",
+          "cachedResultName": "gpt-5.2-chat-latest"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1312,
+        16
+      ],
+      "id": "f46b60d7-d453-40aa-8da6-8a5232f4d7ee",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        176
+      ],
+      "id": "2ca53c58-4588-4954-a5ec-58d247cb63eb",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        -144
+      ],
+      "id": "b08b3a97-d418-4a6f-b354-7e863374213d",
+      "name": "Send a text message",
+      "webhookId": "6c9338a3-1ea6-4189-ac6e-a40944408f23",
+      "credentials": {
+        "telegramApi": {
+          "id": "eutIwAAuZxmuMTQH",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        -144
+      ],
+      "id": "be8d0c1f-f2eb-47d7-b58d-7185aa80c745",
+      "name": "Telegram Trigger",
+      "webhookId": "28607886-aa0e-4ccf-b8c8-e80ac57169b6",
+      "credentials": {
+        "telegramApi": {
+          "id": "eutIwAAuZxmuMTQH",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "competitor-data",
+          "mode": "list",
+          "cachedResultName": "competitor-data"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        -192
+      ],
+      "id": "af7f49a7-ab1b-400f-b5f6-c20758542e2f",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "k2VcSYJAwb2bK7tP",
+          "name": "Non : PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "=Brand: {{ $json.pageName }}\nDate: {{ $json.time }}\nLink: {{ $json.url }}\nContent: {{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        -32
+      ],
+      "id": "c88cc932-2a58-49d5-a9c8-097287833402",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1808,
+        -512
+      ],
+      "id": "9dd5844f-1a42-4a2d-b630-1bec86a9db6a",
+      "name": "Schedule Trigger",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "## ChatBot\n",
+        "height": 464,
+        "width": 816
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1120,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "735639c1-3542-4cd5-815b-50f35a5c41cc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Research\n",
+        "height": 1216,
+        "width": 3376,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2464,
+        -864
+      ],
+      "typeVersion": 1,
+      "id": "6838026a-b884-42f9-9da7-d1d592f17810",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitors_List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ชีต1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        -512
+      ],
+      "id": "63b80d64-2418-44cc-9043-b78c18560763",
+      "name": "Competitors_List",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -992,
+        -464
+      ],
+      "id": "234e8198-dbce-4d99-89e4-1267bb6f6383",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=วันนี้คือวันที่: {{ $now.toFormat('dd/MM/yyyy') }}\n\n# Persona\nYou are a \"Luxury Hotel Competitor Intelligence & Marketing Specialist\" for 4-5 star hotels in Thailand's premium beach destinations (such as Hua Hin, Phuket, Pattaya). You possess deep expertise in competitor analysis, luxury hospitality marketing, Thai tourism trends, guest behavior, and 360-degree marketing strategies. Your role is to assist hotel staff by analyzing competitor data from the vector database, identifying market gaps, and guiding them from ideation through concept development, content planning, and full-cycle content production tailored specifically for luxury beachfront properties.\n\nYour Personality: You are an eager, highly analytical, and intelligent marketing consultant. You anticipate needs before being asked, present insights confidently, base your recommendations strictly on retrieved data, and blend creativity with data-driven competitor insights.\n\n# Workflow & Instructions\nCritical Rule: You MUST be proactive at all times. NEVER wait for users to ask what to do next. Follow this sequence strictly:\n\nStep 1: Automatic Competitor Data Retrieval & Analysis (CRITICAL)\nWhenever a user asks a question about competitors, marketing, or content ideas, you MUST ALWAYS use the \"Pinecone Vector Tool\" to search and retrieve the latest competitor data (e.g., active ads, post performance, promotions, strategies). \nDO NOT ask the user to upload any Excel files. All data is in Pinecone.\n\nIf the user just says \"Hello\" or asks for general advice, respond with a welcoming message and briefly state that you are ready to analyze competitor data. Example: \"Hello! I am your Luxury Hotel Marketing Assistant. I can analyze our competitors' latest strategies and help you craft winning campaigns. What would you like to focus on today?\"\n\nOnce you retrieve data via Pinecone, quickly analyze:\n- Competitor content trends, active ads, and promotions.\n- Marketing opportunities and content gaps (what competitors are missing).\n- Upcoming festivals/holidays in the next 3 months.\n\nStep 2: Proactive Strategy & Content Recommendations\nAfter presenting the requested competitor data or analysis, without waiting to be asked, present festival/seasonal opportunities based on market gaps in this format:\n\n\"Based on the competitor insights and current market trends, I have some strategic content recommendations to help us stand out for [specify timeframe]:\n\n1️⃣ [Campaign Name 1] - [Brief reason based on data, e.g., 'Competitors are ignoring this segment'] 💎\n2️⃣ [Campaign Name 2] - [Brief reason] 🏖️\n3️⃣ [Campaign Name 3] - [Brief reason] 🥂\n\nWould you like me to conduct an in-depth analysis on any of these, or should we start drafting a content strategy for one of them? 📊\"\n\nStep 3: Deep-Dive Segment Questions\nWhen the user selects a theme/campaign, immediately ask questions to identify the target segment to ensure sharp positioning:\n\n\"Excellent choice! To ensure our [selected theme name] content resonates perfectly and beats the competition, which target audience should we focus on?\n\n1️⃣ Working couples (25-40 years) seeking a romantic escape 🥂\n2️⃣ Families with young children (30-45 years) looking for activities 👨‍👩‍👧‍👦\n3️⃣ Retired couples (50-65 years) seeking tranquility and wellness 🧘‍♀️\n4️⃣ Honeymooners or anniversary celebrations 💒\n5️⃣ Groups of working friends looking to unwind together 🍹\n\nPlease select your target audience (you can choose more than one).\"\n\nStep 4: Content Creation & Presentation (Caption First)\nAfter the user selects the target audience, create 2-3 post concepts for Facebook/Instagram. Each concept must include:\n\n🎯 Hook (First 2 lines): Attention-grabbing sentences to stop the scroll.\n📝 Caption (Thai and English): Complete ready-to-use version (150-250 words) with emojis and beautiful formatting.\n📸 Image Description: Detailed description of the recommended visual.\n💡 Strategy Insight: Explanation of why this content will outperform competitors (referencing retrieved Pinecone data).\n🎨 Visual Mood: e.g., Warm, Luxurious, Fun, Romantic.\n\nImportant: Do NOT include hashtags in this step.\nPresent in this format:\n\n\"Presenting content for Facebook/Instagram - [Theme Name] Campaign 🎯\n\nCONCEPT 1: [Concept Name] ✨\n🎯 Hook: [Write the first 2 attention-grabbing lines]\n📝 Caption: [Write complete Caption in both Thai and English]\n📸 Recommended Image: [Detailed description]\n💡 Why This Content Wins: [Explain in 2-3 sentences using competitor data context]\n🎨 Visual Mood: [e.g., Romantic, Cozy, Luxurious]\n\n📊 Additional Recommendations:\nRecommended posting time: [e.g., 6:00-8:00 PM]\nSuggested ad budget/objective: [e.g., Engagement / 2,000 THB]\n\nWhich concept do you like, or would you like me to make any adjustments?\"\n\nStep 5: Refinement Options\nAfter the user selects a concept, offer refinement options:\n\n\"Great choice! Would you like me to adjust anything for this content?\n1️⃣ Adjust the tone to be more friendly/casual 😊\n2️⃣ Add pricing promotions and clear Call-to-Action 💰\n3️⃣ Emphasize luxury and exclusivity more 💎\n4️⃣ Make it shorter and more concise ⚡\n5️⃣ No changes needed, this is perfect! 👍\"\n\nStep 6: Hashtag Offer (After Caption is Finalized)\n\"Your caption is ready! Would you like me to add hashtags to boost visibility? \n1️⃣ Yes, please add hashtags #️⃣\n2️⃣ No hashtags needed ❌\"\n(If yes, provide 5-7 focused, high-impact hashtags only).\n\nStep 7: Continuous Offer Loop (Keep Offering Until Client is Happy)\nCritical: After completing each deliverable, you MUST always offer additional assistance.\n\"Is there anything else I can help you with for this campaign?\n1️⃣ Create a Carousel Post version (multiple images) 🎠\n2️⃣ Design a short video script (Reels) 15-30 seconds 🎥\n3️⃣ Analyze another competitor's strategy 🕵️‍♂️\n4️⃣ I'm all set for now, thank you! ✅\"\n\n# Guardrails (Rules & Restrictions)\n1. ALWAYS USE PINECONE: You must use the \"Pinecone Vector Tool\" whenever asked about competitor data, hotel names, or market trends. Do not guess or hallucinate competitor data.\n2. Tone of Voice: Use a sophisticated, elegant, service-oriented consultant-level tone that reflects 5-star hospitality standards. Use phrases like \"That's an excellent strategic direction\" or \"This approach aligns well with luxury guest expectations.\" Avoid overly informal expressions like \"Wow!\" or \"Amazing!\".\n3. Formatting: All option presentations must use numbered lists with hotel-related emojis (🏖️ 🌅 🍹 💎 ✨ 🏨 🌴 🏊‍♂️ 🧘‍♀️ 🍽️).\n4. Declining Off-Topic Questions: If users ask about topics unrelated to hotel marketing or competitor analysis, politely decline and guide them back. Example: \"I specialize in hotel marketing and competitor intelligence. If you'd like to discuss hotel promotions or analyze a competitor, I'm fully ready to assist! 🌟\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        -144
+      ],
+      "id": "50ec13a2-a5b5-40ca-9862-02a56ac16a76",
+      "name": "Analysis Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Work with competitor-data",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "competitor-data",
+          "mode": "list",
+          "cachedResultName": "competitor-data"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1568,
+        80
+      ],
+      "id": "7c540771-9715-490f-8cd2-d00e615f3ae2",
+      "name": "Pinecone Vector",
+      "credentials": {
+        "pineconeApi": {
+          "id": "k2VcSYJAwb2bK7tP",
+          "name": "Non : PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. ดึงข้อมูลทั้งหมดที่เพิ่งเซฟลง Sheet\nconst allPosts = $input.all().map(item => item.json);\n\n// 2. คำนวณสรุปข้อมูล (KPIs)\nconst totalPosts = allPosts.length;\n// นับจำนวนคู่แข่งที่ไม่ซ้ำกันที่มีการโพสต์วันนี้\nconst uniqueCompetitors = [...new Set(allPosts.map(p => p.pageName || 'Unknown'))].length;\n// สร้างวันที่แบบไทยสวยๆ\nconst todayStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });\n\n// 3. สร้างโครงสร้าง HTML (ดัดแปลงจากเทมเพลต UPMY SKILLS ให้รองรับ Email)\nlet html = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<style>\n  body { font-family: 'Tahoma', 'Sarabun', sans-serif; color: #1F2937; background: #FFFFFF; line-height: 1.6; margin: 0; padding: 20px; }\n  \n  /* Header & Branding */\n  .brand-logo { font-size: 20px; font-weight: bold; color: #1B3A5F; letter-spacing: 2px; }\n  .brand-logo span { color: #C9A961; }\n  .page-header { border-bottom: 2px solid #C9A961; padding-bottom: 10px; margin-bottom: 20px; }\n  .report-date { font-size: 12px; color: #4B5563; }\n  \n  /* Section Headers */\n  .section-header { background: linear-gradient(135deg, #1B3A5F, #0F2440); color: #FFFFFF; padding: 12px 20px; border-radius: 6px; margin-bottom: 16px; font-weight: bold; font-size: 16px; }\n  \n  /* KPI Cards (Email safe layout) */\n  .kpi-container { margin-bottom: 20px; width: 100%; }\n  .kpi-card { background: #E8EDF3; border-radius: 8px; padding: 16px; text-align: center; border-left: 4px solid #C9A961; display: inline-block; width: 45%; box-sizing: border-box; }\n  .kpi-value { font-size: 28px; font-weight: bold; color: #1B3A5F; margin-bottom: 4px; }\n  .kpi-label { font-size: 12px; color: #4B5563; }\n  \n  /* Tables */\n  .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }\n  .data-table th { background: #1B3A5F; color: #FFFFFF; padding: 12px; text-align: left; border-radius: 4px 4px 0 0;}\n  .data-table td { padding: 12px; border-bottom: 1px solid #D1D5DB; vertical-align: top; }\n  .data-table tr:nth-child(even) td { background: #F5F6F8; }\n  \n  .fb-link { display: inline-block; background: #E8EDF3; color: #1B3A5F; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 11px; }\n  .like-badge { display: inline-block; background: #C9A961; color: #FFFFFF; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; margin-top: 4px; }\n</style>\n</head>\n<body>\n\n  <div class=\"page-header\">\n    <div class=\"brand-logo\">UPMY <span>SKILLS</span></div>\n    <div class=\"report-date\">Daily Competitor Social Media Update | ${todayStr}</div>\n  </div>\n\n  <div class=\"section-header\">\n    📊 EXECUTIVE SUMMARY | สรุปภาพรวมความเคลื่อนไหว\n  </div>\n\n  <div class=\"kpi-container\">\n    <div class=\"kpi-card\" style=\"margin-right: 2%;\">\n      <div class=\"kpi-value\">${totalPosts}</div>\n      <div class=\"kpi-label\">Total Active Posts<br>จำนวนโพสต์ที่พบวันนี้</div>\n    </div>\n    <div class=\"kpi-card\">\n      <div class=\"kpi-value\">${uniqueCompetitors}</div>\n      <div class=\"kpi-label\">Active Competitors<br>จำนวนคู่แข่งที่เคลื่อนไหว</div>\n    </div>\n  </div>\n\n  <div class=\"section-header\">\n    📝 POST DETAILS | รายละเอียดเนื้อหาและโปรโมชั่น\n  </div>\n\n  <table class=\"data-table\">\n    <thead>\n      <tr>\n        <th style=\"width: 25%;\">Resort / คู่แข่ง</th>\n        <th style=\"width: 55%;\">Content / เนื้อหาโพสต์</th>\n        <th style=\"width: 20%;\">Action</th>\n      </tr>\n    </thead>\n    <tbody>\n`;\n\n// 4. วนลูปข้อมูลแต่ละโพสต์มาใส่ในตาราง\nallPosts.forEach(post => {\n  // Mapping ตัวแปรให้ตรงกับ Google Sheets ขาเข้า\n  const name = post.pageName || 'Unknown Resort';\n  \n  // แปลง \\n ให้เป็น <br> เพื่อให้ข้อความขึ้นบรรทัดใหม่ได้ถูกต้องใน HTML\n  let content = post.text || '-';\n  content = content.replace(/\\n/g, '<br>'); \n  \n  const link = post.url || '#';\n  const likes = post.likes !== undefined ? post.likes : 0;\n\n  html += `\n      <tr>\n        <td>\n          <strong style=\"color: #1B3A5F; font-size: 13px;\">${name}</strong><br>\n          <div class=\"like-badge\">👍 ${likes} Likes</div>\n        </td>\n        <td style=\"color: #4B5563; line-height: 1.5;\">${content}</td>\n        <td>\n          <a href=\"${link}\" class=\"fb-link\" target=\"_blank\">View Post ↗</a>\n        </td>\n      </tr>\n  `;\n});\n\n// 5. ปิดท้าย HTML\nhtml += `\n    </tbody>\n  </table>\n  \n  <div style=\"text-align: center; margin-top: 30px; border-top: 1px solid #D1D5DB; padding-top: 15px;\">\n    <div class=\"brand-logo\" style=\"font-size: 14px;\">UPMY <span>SKILLS</span></div>\n    <div style=\"font-size: 10px; color: #4B5563; margin-top: 5px;\">Automated Competitor Intelligence by AI Workflow</div>\n    <div style=\"font-size: 10px; color: #4B5563;\">Confidential Report</div>\n  </div>\n\n</body>\n</html>\n`;\n\n// 6. ส่งค่าออกไปให้โหนด Gmail\nreturn {\n  json: {\n    html_report: html,\n    subject_date: todayStr\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -256
+      ],
+      "id": "4de33359-30da-4019-b840-bf350d7c6910",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Social_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -720,
+        -256
+      ],
+      "id": "10751555-9f30-4e16-9d65-844074768ef8",
+      "name": "Get row(s) in sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@GMAIL.COM",
+        "subject": "REPORT",
+        "message": "={{ $json.html_report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -256
+      ],
+      "id": "eec7321f-1bec-44a0-a3d9-1f067f189382",
+      "name": "Send a message",
+      "webhookId": "9c874abe-8b17-41be-8570-a27cd7d5a892",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "uTLYWtNwvV78AMru",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        -256
+      ],
+      "id": "05c83af8-cb73-4db7-9648-be07ee70da29",
+      "name": "Wait",
+      "webhookId": "84c4db52-242d-479c-a111-794a6f010da4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        -256
+      ],
+      "id": "98a78af5-f990-4260-b7e6-b840d3a6a646",
+      "name": "Limit"
+    }
+  ],
+  "pinData": {
+    "Apify : Facebook": [
+      {
+        "json": {
+          "facebookUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "postId": "1369874328500947",
+          "pageName": "SOSofitelHuaHin",
+          "url": "https://www.facebook.com/SOSofitelHuaHin/posts/pfbid02L77KKTkcxo1GRMwRGyqMrdJpvduBnTwshuTdBrW7AHRhjt9dsLeXFLfyMS9unUdfl",
+          "time": "2026-02-19T12:00:09.000Z",
+          "timestamp": 1771502409,
+          "user": {
+            "id": "100064351795386",
+            "name": "SO Sofitel Hua Hin",
+            "profileUrl": "https://www.facebook.com/100064351795386",
+            "profilePic": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-1/568739460_1271940874960960_1644638039947177245_n.jpg?stp=c99.99.882.882a_cp0_dst-jpg_s50x50_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=qc91RCRUx4kQ7kNvwFKBjDp&_nc_oc=AdnLnoD23wecS1mMfFpSleq7RP1cxbGJo_JlhB786ZwvN36a_TPQEjowjOcB8GS57L0hHLG4NUkiefhPs7PeQGzP&_nc_zt=24&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afuu4Dh0QrGOSy3GTh46H9DNlmx02412MEqsq_wyl5hWYw&oe=699CDAB8"
+          },
+          "collaborators": [],
+          "text": "เตรียมทริปเที่ยวทะเลวันหยุดยาว 28 ก.พ.  - 3 มี.ค. 69 แพ็กเกจห้องพัก รวมบุฟเฟต์อาหารเช้า ราคาเริ่มต้น 4,500++ บาท \n\n• ฟรีมินิบาร์\n• ฟรีขนมสายไหม หรือมาร์ชเมลโล่ย่าง\n• ฟรีเครื่องเล่นสระว่ายน้ำ Wibit หรือ Wet Bubble รวมถึงมินิกอล์ฟ และพิคเคิลบอล\n\nสมาชิก ALL Accor+ Explorer ลด 15% และ ALL Accor ลด 5% \n\n👉 สำรองห้องพัก คลิก https://bit.ly/4oSEDjM \n📞 โทร: 032709501, 032709529 และ 032709530 \n 🔍 แอดไลน์: https://lin.ee/umObJBN \n---------------------------------------\n🌊Escape to the Sea This Long Holiday during 28 Feb – 3 Mar 2026. Treat yourself to a refreshing beachside break with a stay that comes with daily buffet breakfast - start from THB 4,500++. per roon per night\n• Free minibar\n• Free cotton candy or roasted marshmallows\n• Free access to Wibit or Wet Bubble pool, plus mini golf and pickleball\n\nALL Accor+ Explorer members get 15% OFF, and ALL Accor get 5% OFF\n\n👉 Discover more, click https://bit.ly/47o5kqi \n 📞 Call 032709501, 032709529 and 032709530 \n  🔍 Add LINE: https://lin.ee/umObJBN \n\n#sosofitelhuahin #sohotels #sohotelsandresort #chaambeach #huahin #beachhotel #longholiday",
+          "textReferences": [
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F4oSEDjM&h=ASWvK2d-NCPy5JG1j2ZVsHFDLeZDpalkShy43_WxAC3WdA5Jv2MShX2avVqr_XQOq2TDZ5XpG8rpk5oYmI_QvpfBZnUCW2qsHEvi2ErsyVoq3OvsuPyFSZHndGYCVueCNqthCLLu8Fp_ySxcgxGcl3XIp-cJIthCnkfDUmgDkGHnZGr0&s=1",
+              "external_url": "https://bit.ly/4oSEDjM",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/4oSEDjM",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F4oSEDjM&h=ASVWo9Dx0VVmm85Y1zOXz4PLjs6i4w4bm8TDLQEPYYKR5wu89X42ZXMdaoCtKgjGls0wZC6k3zMCfu9szGYw9rE19o1z-5g38jkhfmMdz1CNR7zt3itY-pcLrqxb8jelA6aOwnOJB-xtvXSBKB8DPFWksDQo11LnaMLfilLMc5uSvA9b&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS80b1NFRGpNOjpEZWZhdWx0Ojo6MTM2OTg3NDMyODUwMDk0Nw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASUCzFGBnx-tWxajt3OIyybuYEPuWwQKcWYpeQgwZlCComGFWn7e9_B-jQ24waJf0L4PoYoF-S90EJ7tzm8zKfaeZATZ5cE1kCd74XrkaeQRSFAjnM-KKXYZllmuSNluUlYnQ9skSjr1qif1VtFmWNaKAA-LLQu_FFgftE1pu6erd6O9&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASVminRO5o7dxgvdA3Od9NRi_R7ErTit5jnAgZzhPDHHjRYHlNneDWUGF3gg91ecSgvdsyN-ArjA-xpEZjYpsPnJWnbJOwMG_SoynxN9iUr2cbXcfvPEf0FSK8Wyg7cb7ivlfUjeuQzEye7ElkAbZi2qbXZbsJCZS1HpTlPoVrOhP5Sr&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2OTg3NDMyODUwMDk0Nw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F47o5kqi&h=ASV-wYng5KKdV0xrKx7DrGZqMM_q3SZyxEssAF45BAWCz48HvbwxD6dIvztY9l8ytWnLYtyHrCYe4N6tTlqq0pi7bhNATpXLSw8TT2-yylu4LeEZ9DnxdBXlrNyxi7vXNNuytN-K_ffLN_2k9wcMz05orTQLEZIFw01T80wrSnrRhPYd&s=1",
+              "external_url": "https://bit.ly/47o5kqi",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/47o5kqi",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F47o5kqi&h=ASWsE940rE-h4ZlpgrePloejx2zZ4f_UPHqOy4ZRg3vPqlxcLF3Zzj6BpM0DdiQ-NobqfA_UyTmx7CA_5mhKu7UvAAzF4bt6-ZdM3Ew48lYIGYs9Ub8kD9GpTdsJX2_tQ1tMznS14d7aUqt8g4-iHi3ruXItekOAhvrQKVIbm2KZYubv&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS80N281a3FpOjpEZWZhdWx0Ojo6MTM2OTg3NDMyODUwMDk0Nw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASUCzFGBnx-tWxajt3OIyybuYEPuWwQKcWYpeQgwZlCComGFWn7e9_B-jQ24waJf0L4PoYoF-S90EJ7tzm8zKfaeZATZ5cE1kCd74XrkaeQRSFAjnM-KKXYZllmuSNluUlYnQ9skSjr1qif1VtFmWNaKAA-LLQu_FFgftE1pu6erd6O9&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASVminRO5o7dxgvdA3Od9NRi_R7ErTit5jnAgZzhPDHHjRYHlNneDWUGF3gg91ecSgvdsyN-ArjA-xpEZjYpsPnJWnbJOwMG_SoynxN9iUr2cbXcfvPEf0FSK8Wyg7cb7ivlfUjeuQzEye7ElkAbZi2qbXZbsJCZS1HpTlPoVrOhP5Sr&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2OTg3NDMyODUwMDk0Nw=="
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sosofitelhuahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sosofitelhuahin",
+              "id": "890179797736910"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sohotels?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sohotels",
+              "id": "673956439303135"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sohotelsandresort?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sohotelsandresort",
+              "id": "2709051752479125"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/chaambeach?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/chaambeach",
+              "id": "156215974545647"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/huahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/huahin",
+              "id": "138572742981740"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/beachhotel?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/beachhotel",
+              "id": "636527073028115"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/longholiday?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/longholiday",
+              "id": "220792221397001"
+            }
+          ],
+          "link": "https://bit.ly/4oSEDjM",
+          "likes": 5,
+          "shares": 0,
+          "topReactionsCount": 2,
+          "media": [
+            {
+              "mediaset_token": "pcb.1369874328500947",
+              "url": "https://www.facebook.com/SOSofitelHuaHin/posts/pfbid02L77KKTkcxo1GRMwRGyqMrdJpvduBnTwshuTdBrW7AHRhjt9dsLeXFLfyMS9unUdfl",
+              "comet_product_tag_feed_overlay_renderer": null
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/637996559_1369851201836593_6220973233838436424_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=106&ccb=1-7&_nc_sid=13d280&_nc_ohc=D7C-_-kjiocQ7kNvwGXBuL1&_nc_oc=Adn3Yj0tSgl4b0-LSspdgQ9RPVj3czsD_DFnujoaymEGpYRtoesQZoqQDQPzyj-8S7T5VSyy9nlQVMTXSEXy1MeH&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfuYJdW_9kqxdMZ-31wXRF8CdC84ENP73nKAFg4TMjY8zw&oe=699CD838",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/637996559_1369851201836593_6220973233838436424_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=106&ccb=1-7&_nc_sid=13d280&_nc_ohc=D7C-_-kjiocQ7kNvwGXBuL1&_nc_oc=Adn3Yj0tSgl4b0-LSspdgQ9RPVj3czsD_DFnujoaymEGpYRtoesQZoqQDQPzyj-8S7T5VSyy9nlQVMTXSEXy1MeH&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfuYJdW_9kqxdMZ-31wXRF8CdC84ENP73nKAFg4TMjY8zw&oe=699CD838",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1369874298500950",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of beach and text that says 'Long Holiday Staycation// 28 ก.พ. 3 มี.ค. 3มี.ค.69 69 ราคาเริ่มต้น 4, 4,500 ++ ราคา รวมบุฟเฟต์อาหารเช้า เช้า'"
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/636906226_1369851198503260_6565584344452393146_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=103&ccb=1-7&_nc_sid=13d280&_nc_ohc=zDIMy7Y1K_gQ7kNvwHjWKhn&_nc_oc=AdkIUzky_zdMkl-GbtasQn0ZZIY_66Gu2ceOTrUuLG2agpbavI_2_SMxsxjhj25J6UQRC-AMy-xVkB2E4lOC_i-R&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afu2xasvjGfQUpvjEkO6aDpJrPUFiGno57m-KqPwh7sjbw&oe=699CD723",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/636906226_1369851198503260_6565584344452393146_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=103&ccb=1-7&_nc_sid=13d280&_nc_ohc=zDIMy7Y1K_gQ7kNvwHjWKhn&_nc_oc=AdkIUzky_zdMkl-GbtasQn0ZZIY_66Gu2ceOTrUuLG2agpbavI_2_SMxsxjhj25J6UQRC-AMy-xVkB2E4lOC_i-R&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afu2xasvjGfQUpvjEkO6aDpJrPUFiGno57m-KqPwh7sjbw&oe=699CD723",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1369874301834283",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of pool"
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/638098893_1369851195169927_8731830522120287041_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=109&ccb=1-7&_nc_sid=13d280&_nc_ohc=PQ9gbk1otO4Q7kNvwEspJeW&_nc_oc=AdkyhypESFD2reIjBDmbBL0VZ20ao3fXkBfaYvVN9gBIVPt-6Xsj4IhN_bv0h4RnLpVLujKWibDFpRlB6-tLee3z&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afs7q65LtwtcENpULQDc9OR8X1SIE0rTGh4wlLSddaQP8w&oe=699CF490",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/638098893_1369851195169927_8731830522120287041_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=109&ccb=1-7&_nc_sid=13d280&_nc_ohc=PQ9gbk1otO4Q7kNvwEspJeW&_nc_oc=AdkyhypESFD2reIjBDmbBL0VZ20ao3fXkBfaYvVN9gBIVPt-6Xsj4IhN_bv0h4RnLpVLujKWibDFpRlB6-tLee3z&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afs7q65LtwtcENpULQDc9OR8X1SIE0rTGh4wlLSddaQP8w&oe=699CF490",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1369874308500949",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of child, segway and scooter"
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/639426283_1369851151836598_134999805536295407_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=104&ccb=1-7&_nc_sid=13d280&_nc_ohc=yHiX_qmIWBIQ7kNvwFcHmeH&_nc_oc=AdlR-M7Fj0XTrvZHi5VM72RI1-EGets4o7NB4H47fZRhGV30hPwG6JbUNk0lhc8BMOjdcZsD_pcC0xCsaZPMuDlV&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfvoV56Ds3Cu4nogVWmRRBzvRjrzV2YG7JSI402LeS8NlQ&oe=699CEDE3",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/639426283_1369851151836598_134999805536295407_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=104&ccb=1-7&_nc_sid=13d280&_nc_ohc=yHiX_qmIWBIQ7kNvwFcHmeH&_nc_oc=AdlR-M7Fj0XTrvZHi5VM72RI1-EGets4o7NB4H47fZRhGV30hPwG6JbUNk0lhc8BMOjdcZsD_pcC0xCsaZPMuDlV&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfvoV56Ds3Cu4nogVWmRRBzvRjrzV2YG7JSI402LeS8NlQ&oe=699CEDE3",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1369874305167616",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of bed and bedroom"
+            }
+          ],
+          "feedbackId": "ZmVlZGJhY2s6MTM2OTg3NDMyODUwMDk0Nw==",
+          "reactionLikeCount": 4,
+          "reactionWowCount": 1,
+          "topLevelUrl": "https://www.facebook.com/100064351795386/posts/1369874328500947",
+          "facebookId": "100064351795386",
+          "pageAdLibrary": {
+            "is_business_page_active": true,
+            "id": "1706839996218380"
+          },
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "facebookUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "postId": "1368929468595433",
+          "pageName": "SOSofitelHuaHin",
+          "url": "https://www.facebook.com/SOSofitelHuaHin/posts/pfbid02k8XCXJR62m9XpvQL2ntPi7ZzfT6ib4LmAbqPfnE69rMXSEm9mYycg3CeoFJmwaHel",
+          "time": "2026-02-18T12:00:04.000Z",
+          "timestamp": 1771416004,
+          "user": {
+            "id": "100064351795386",
+            "name": "SO Sofitel Hua Hin",
+            "profileUrl": "https://www.facebook.com/100064351795386",
+            "profilePic": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-1/568739460_1271940874960960_1644638039947177245_n.jpg?stp=c99.99.882.882a_cp0_dst-jpg_s50x50_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=qc91RCRUx4kQ7kNvwFKBjDp&_nc_oc=AdnLnoD23wecS1mMfFpSleq7RP1cxbGJo_JlhB786ZwvN36a_TPQEjowjOcB8GS57L0hHLG4NUkiefhPs7PeQGzP&_nc_zt=24&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afuu4Dh0QrGOSy3GTh46H9DNlmx02412MEqsq_wyl5hWYw&oe=699CDAB8"
+          },
+          "collaborators": [],
+          "text": "ก้าวออกจากห้องประชุมสู่สวนสีเขียว\nเติมความสดชื่นด้วยคอฟฟี่เบรก “ธีมปิกนิก” ท่ามกลางบรรยากาศร่มรื่น พร้อมเบเกอรี่ เสิร์ฟคู่ชาหรือน้ำผลไม้ — ช่วงเวลาแห่งการพักผ่อนเพื่อเติมพลัง สมดุล และแรงบันดาลใจ 🌿 เพราะไอเดียที่ดี เริ่มต้นได้จากอากาศบริสุทธิ์ ☕🌿\n\n👉ดูเพิ่มเติม คลิก https://bit.ly/3OixFHb\n📞โทร: 032709501, 032709529 และ 032709530 \n 🔍แอดไลน์: https://lin.ee/umObJBN\n--------------\nStep out of the meeting room and into the garden.\nRefresh your mind with a picnic-style coffee break surrounded by greenery, featuring fresh bakeries and pastries served with tea or juice — a mindful pause designed for focus, balance, and inspiration.🌿 Because great ideas deserve fresh air ☕\n\n👉Discover more, click  https://bit.ly/40eWqqa\n 📞Call 032709501, 032709529 and 032709530 \n  🔍Add LINE: https://lin.ee/umObJBN\n\n#sosofitelhuahin #sohotelsandresort #chaambeach #huahin #beachhotel #MeetingsAndEvents ##corporateevents",
+          "textReferences": [
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F3OixFHb&h=ASXl_jHWpfyO5p9M0uTFujuG3gynAk2e3RTp0CTzP5CHorY_D9tiQnSyZs9nMo-iV7YEhrqJLE5MJVyOjyTV1chBEHI8Uk6cK7DTxS_F69FdskBO_iknOJ_-J2xsE6GqprELL6JVjnVTxjQKF8_IvKJzmcjH0XzvHKXmvfzvFHJKX8CN&s=1",
+              "external_url": "https://bit.ly/3OixFHb",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/3OixFHb",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F3OixFHb&h=ASU5HVben-gsDMS3UZqmolAG0RPOC2VBzC976OAF8wkiH879ciVValGBh3bnFJprQZok1Oe4pB3bod__aD9t8NhrxJdua0E2K3ITJLGs6UaLnMOpMOhaGabB-eiB9xiAdRLuUYIOUa897mX137gFypO0iTNpx2l6FbfSEutv818mtovU&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS8zT2l4RkhiOjpEZWZhdWx0Ojo6MTM2ODkyOTQ2ODU5NTQzMw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASXd_rUvcYeWsLtWt1QDRbPK1x5jh24V8mYiercfVt0JoeMa7RbhwUffbHuA_4koBowS2EhD0Ck79J7_T92rv6JbZ7ANf-47QbfZ3Rc1WlHh0oZfowk2Q9Y2QPUAR-wYtncKr_1V57EOk6fXkgTn9huR9Nf_p6TMjthQe8fl8rcmLkfB&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASX1r-j829DK-UKn4AwozwN_mUigEgmLY5JTX11m1fjKt5BuH0hvBlwvBJlWNuWiwkW80RGBglXkW51WkS6daZcBlDRj7TYc-5ULQXl9Wx_I-gK2yi86OPk3-WUqCckm-yaFYmFgqduTZc3AKTB6q1w9I3DCHQ9XnQFnpznt6TQ89eSB&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2ODkyOTQ2ODU5NTQzMw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F40eWqqa&h=ASW4_ugutS5xivDHxKpQgBLC_2ZseAZoBKwVT6K7GR2DkuJAiNV1Mqa_nSRuUMAg6k_xvhaePfOd6pefXPcSD0KjzcTzpQE4BphI5-r6DAuxIQxxsGl4SkePIxE3mTFuODKpNI-aL6p5qQoJTdJp7QI5oWWkd62cZHBGwiYnnpur2dni&s=1",
+              "external_url": "https://bit.ly/40eWqqa",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/40eWqqa",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F40eWqqa&h=ASXQpQZt1S7sQakpYMnAq2sIEZNQguWWSV2dCGSh7Q41QFKzP8r4-4F7stwY-rt0TXdSfFj5_VGfk6ymxTjBSsoSwxSKHseHlZm-C2Ori9X4Bl5ko9AoyrJQaPdrbF9fz1pTWNVjD_bhBvIEN4fQ0ICNdfUibO1nmqJWyRf2j5vzb8tP&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS80MGVXcXFhOjpEZWZhdWx0Ojo6MTM2ODkyOTQ2ODU5NTQzMw=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASXd_rUvcYeWsLtWt1QDRbPK1x5jh24V8mYiercfVt0JoeMa7RbhwUffbHuA_4koBowS2EhD0Ck79J7_T92rv6JbZ7ANf-47QbfZ3Rc1WlHh0oZfowk2Q9Y2QPUAR-wYtncKr_1V57EOk6fXkgTn9huR9Nf_p6TMjthQe8fl8rcmLkfB&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASX1r-j829DK-UKn4AwozwN_mUigEgmLY5JTX11m1fjKt5BuH0hvBlwvBJlWNuWiwkW80RGBglXkW51WkS6daZcBlDRj7TYc-5ULQXl9Wx_I-gK2yi86OPk3-WUqCckm-yaFYmFgqduTZc3AKTB6q1w9I3DCHQ9XnQFnpznt6TQ89eSB&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2ODkyOTQ2ODU5NTQzMw=="
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sosofitelhuahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sosofitelhuahin",
+              "id": "890179797736910"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sohotelsandresort?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sohotelsandresort",
+              "id": "2709051752479125"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/chaambeach?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/chaambeach",
+              "id": "156215974545647"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/huahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/huahin",
+              "id": "138572742981740"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/beachhotel?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/beachhotel",
+              "id": "636527073028115"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/meetingsandevents?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/meetingsandevents",
+              "id": "126301240895099"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/corporateevents?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/corporateevents",
+              "id": "543145589038947"
+            }
+          ],
+          "link": "https://bit.ly/3OixFHb",
+          "likes": 7,
+          "shares": 2,
+          "topReactionsCount": 3,
+          "media": [
+            {
+              "mediaset_token": "pcb.1368929468595433",
+              "url": "https://www.facebook.com/SOSofitelHuaHin/posts/pfbid02k8XCXJR62m9XpvQL2ntPi7ZzfT6ib4LmAbqPfnE69rMXSEm9mYycg3CeoFJmwaHel",
+              "comet_product_tag_feed_overlay_renderer": null
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/635979386_1368869948601385_8283164338479835483_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=101&ccb=1-7&_nc_sid=13d280&_nc_ohc=9ae9427ylSsQ7kNvwEHxooD&_nc_oc=AdmNFVInxNbOYQFQZa2Hw5IN-tMJhzjpVSJMBFm_FdaD1cTQ2u0I0rEH4Kccjvrbu7Ry-1F348OiYIyZg1z1nJrX&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AftsLQHSdFAnLz0SWzrUYcb--lXQQ_Fq-w-aojel1iVy3w&oe=699CED0D",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/635979386_1368869948601385_8283164338479835483_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=101&ccb=1-7&_nc_sid=13d280&_nc_ohc=9ae9427ylSsQ7kNvwEHxooD&_nc_oc=AdmNFVInxNbOYQFQZa2Hw5IN-tMJhzjpVSJMBFm_FdaD1cTQ2u0I0rEH4Kccjvrbu7Ry-1F348OiYIyZg1z1nJrX&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AftsLQHSdFAnLz0SWzrUYcb--lXQQ_Fq-w-aojel1iVy3w&oe=699CED0D",
+                "height": 309,
+                "width": 590
+              },
+              "id": "1368929411928772",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "No photo description available."
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/637931631_1368868128601567_4664767328557547851_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=104&ccb=1-7&_nc_sid=13d280&_nc_ohc=VffmGMPIbtoQ7kNvwFWAtW8&_nc_oc=AdkBUSS_kS8j3sJR2Y_UyAM4I3UBnviWVAxaBbY-vPM4l2mcMIBOLAZFGpJH6cwNCHhdXkuk6aBiySZVqnZI2vRJ&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afua-QAV-xIGqhCA7mpWvDzPtb8tRH1onZnRJ5cpJ6d27A&oe=699D0645",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/637931631_1368868128601567_4664767328557547851_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=104&ccb=1-7&_nc_sid=13d280&_nc_ohc=VffmGMPIbtoQ7kNvwFWAtW8&_nc_oc=AdkBUSS_kS8j3sJR2Y_UyAM4I3UBnviWVAxaBbY-vPM4l2mcMIBOLAZFGpJH6cwNCHhdXkuk6aBiySZVqnZI2vRJ&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afua-QAV-xIGqhCA7mpWvDzPtb8tRH1onZnRJ5cpJ6d27A&oe=699D0645",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1368929415262105",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of cupcake and strawberry"
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/639040929_1368868175268229_7876024470690828426_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=111&ccb=1-7&_nc_sid=13d280&_nc_ohc=uvduw6BI30oQ7kNvwENUnXb&_nc_oc=AdkdlfDP83PcSfV_dxzUvKlqanbAzGoUvFffqkEKWdGrUgFecZKWfWpE8C-L3U6uP4fqQI2EAwxgy9GhttrBGJun&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Aftx4dd9jOPepcRJBTwKL4WeZmtxJ58QbNXjVmyvlaR6yQ&oe=699CFE6E",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/639040929_1368868175268229_7876024470690828426_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=111&ccb=1-7&_nc_sid=13d280&_nc_ohc=uvduw6BI30oQ7kNvwENUnXb&_nc_oc=AdkdlfDP83PcSfV_dxzUvKlqanbAzGoUvFffqkEKWdGrUgFecZKWfWpE8C-L3U6uP4fqQI2EAwxgy9GhttrBGJun&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Aftx4dd9jOPepcRJBTwKL4WeZmtxJ58QbNXjVmyvlaR6yQ&oe=699CFE6E",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1368929408595439",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "May be an image of cake and baguette"
+            },
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/636707711_1368868181934895_4755132436890228627_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=101&ccb=1-7&_nc_sid=13d280&_nc_ohc=bJjvznSyBLoQ7kNvwHHSu8e&_nc_oc=AdmOuTp8oqeJI0sbx4sG5pIY2FAKId2NGFV8UgZruWsrlLAfWHuQ2_eChYMidH6xk-_49p5uU93gPX5P9MBrQz7u&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AftgCqF8b4bV_ZJEa3Oc5iTZkYXMJ2O00ICJzcNM-vzd5w&oe=699D058E",
+              "__typename": "Photo",
+              "is_playable": false,
+              "image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/636707711_1368868181934895_4755132436890228627_n.jpg?stp=dst-jpg_s590x590_tt6&_nc_cat=101&ccb=1-7&_nc_sid=13d280&_nc_ohc=bJjvznSyBLoQ7kNvwHHSu8e&_nc_oc=AdmOuTp8oqeJI0sbx4sG5pIY2FAKId2NGFV8UgZruWsrlLAfWHuQ2_eChYMidH6xk-_49p5uU93gPX5P9MBrQz7u&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AftgCqF8b4bV_ZJEa3Oc5iTZkYXMJ2O00ICJzcNM-vzd5w&oe=699D058E",
+                "height": 590,
+                "width": 590
+              },
+              "id": "1368929405262106",
+              "__isMedia": "Photo",
+              "photo_cix_screen": null,
+              "copyright_banner_info": null,
+              "owner": {
+                "__typename": "User",
+                "id": "100064351795386"
+              },
+              "ocrText": "No photo description available."
+            }
+          ],
+          "feedbackId": "ZmVlZGJhY2s6MTM2ODkyOTQ2ODU5NTQzMw==",
+          "reactionLikeCount": 5,
+          "reactionLoveCount": 1,
+          "reactionWowCount": 1,
+          "topLevelUrl": "https://www.facebook.com/100064351795386/posts/1368929468595433",
+          "facebookId": "100064351795386",
+          "pageAdLibrary": {
+            "is_business_page_active": true,
+            "id": "1706839996218380"
+          },
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "facebookUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "postId": "1367025075452539",
+          "pageName": "SOSofitelHuaHin",
+          "url": "https://www.facebook.com/SOSofitelHuaHin/posts/pfbid0mbGb3nzMsspvTMMFxL642uiZkyiVqB97Ba5ut92MujiZAittJniqXQSKgBnnZ1WFl",
+          "time": "2026-02-16T12:00:12.000Z",
+          "timestamp": 1771243212,
+          "user": {
+            "id": "100064351795386",
+            "name": "SO Sofitel Hua Hin",
+            "profileUrl": "https://www.facebook.com/100064351795386",
+            "profilePic": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-1/568739460_1271940874960960_1644638039947177245_n.jpg?stp=c99.99.882.882a_cp0_dst-jpg_s50x50_tt6&_nc_cat=109&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=qc91RCRUx4kQ7kNvwFKBjDp&_nc_oc=AdnLnoD23wecS1mMfFpSleq7RP1cxbGJo_JlhB786ZwvN36a_TPQEjowjOcB8GS57L0hHLG4NUkiefhPs7PeQGzP&_nc_zt=24&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_Afuu4Dh0QrGOSy3GTh46H9DNlmx02412MEqsq_wyl5hWYw&oe=699CDAB8"
+          },
+          "collaborators": [],
+          "text": "ดื่มด่ำไปกับสระว่ายน้ำซิกเนเจอร์ โลดแล่นเหนือผืนน้ำลงสู่ใต้น้ำใสราวคริสตัลไปกับเครื่องสกู๊ตเตอร์ ที่ทุกจังหวะของสายน้ำคือความสนุกผ่อนคลายอย่างแท้จริง🌊✨\n\n👉สำรองห้องพัก คลิก https://bit.ly/4oSEDjM \n📞โทร: 032709501, 032709529 และ 032709530 \n 🔍แอดไลน์: https://lin.ee/umObJBN \n--------------------------------------\n\nDive into our signature pool and glide across crystal waters with your own water scooter guide — where every splash feels like a private escape. 🌊✨\n\n 👉Discover more, click https://bit.ly/47o5kqi \n 📞Call 032709501, 032709529 and 032709530 \n  🔍Add LINE: https://lin.ee/umObJBN \n\n#sosofitelhuahin #sohotels #sohotelsandresort #chaambeach #huahin #beachhotel #waterscooter ##wateractivities",
+          "textReferences": [
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F4oSEDjM&h=ASVQT61t8mAaIsLqB8fgvYzdRu_K-D-BF4bTPLzx6-R7UtQNoaOphhOpJIPWiIUIu1dVlrxygtjbPjCY75Whlk92_9vQlFKQHulZ14aKb0zuuAaB6m8O69pDaONIxxcMDqX03lbI4BZCYoXCpHu6mIFybss2vfC_SFdtl_ENKMeJ9NBY&s=1",
+              "external_url": "https://bit.ly/4oSEDjM",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/4oSEDjM",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F4oSEDjM&h=ASWbs7GTJv8M_uw5K37MRefgAC_NDzyBOsPczd8LH3W9VVuHVoxguUXCTDyehE5YdA6vKKLvBqN52O5G6WhyBjCWl0zjpQ6GEsfa7hETHIs5DK4pJcHeMz3OoYMwKfc5WspxDZWzfJeVM_-x6mZ0LTJd--8Xq1dQOSV1wWfkT0IzYxMk&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS80b1NFRGpNOjpEZWZhdWx0Ojo6MTM2NzAyNTA3NTQ1MjUzOQ=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASV6aeItzhMZCf0GYpvk0x-e4KZ5O4bpTB1GcQq-96a_HnxA425TJPxWZQfHZf_AKIpRqgH36j3RzV6TcK30W3-BT1sefr8nNiYV-vMdfUVgSy3UY8AAQae-kdpO5-9tXRkQJOzbDaShJ3xynuWOYUWOFczhsIKT9L59PC2ZKFIF0_q_&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASWeAJpu4uy6rhqbF5q61rZf6RIO4dIbH3PHQqtxxPL9zZs0K_dVpI0_SgFd3GSd-1cyihZeIbU76K_Zv1DCtzXH3NjXrk8UtvXYyXynTtXC5P7HG5gU4uzfU8vQlPw_51OtSyVcRHltks_1BPUwtKcPCG8PjsUDkil_H828nmh59TxC&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2NzAyNTA3NTQ1MjUzOQ=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F47o5kqi&h=ASX4yb-3PrclFLi5E_Zxx6slfHMN96JUZBG3DJcrw4olD0y3p3RLO5rILIU7K9SKmFf_1kDROuaExX6GmfJ2TrkaiGdFEGHbwCj3xjwRQzkgm6kDIr80o_BOC9ebZoQxK4D7j8fdSo1dlWqX64VYxjO0Pl29BJu3eS6Q_A43B4qCBo3_&s=1",
+              "external_url": "https://bit.ly/47o5kqi",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://bit.ly/47o5kqi",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2F47o5kqi&h=ASWsh2PwB8KwEGz-xHxK7nVQ0uvAZlo0YoCSvzuSdcRt2YQB7-Bx9mwUEPAopuAAWQ12ZjYd7Gsf-dUHavf0B8owSa2hG92HGwl9eGWO1XdGr2WPzL2OGRJpKevgMxNFYYpCSge83NB9vcB7v4pBzI4vhQmhnzGwMjYIBEfp9H5WY8CH&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2JpdC5seS80N281a3FpOjpEZWZhdWx0Ojo6MTM2NzAyNTA3NTQ1MjUzOQ=="
+            },
+            {
+              "url": "https://l.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASV6aeItzhMZCf0GYpvk0x-e4KZ5O4bpTB1GcQq-96a_HnxA425TJPxWZQfHZf_AKIpRqgH36j3RzV6TcK30W3-BT1sefr8nNiYV-vMdfUVgSy3UY8AAQae-kdpO5-9tXRkQJOzbDaShJ3xynuWOYUWOFczhsIKT9L59PC2ZKFIF0_q_&s=1",
+              "external_url": "https://lin.ee/umObJBN",
+              "web_link": {
+                "__typename": "ExternalWebLink",
+                "url": "https://lin.ee/umObJBN",
+                "fbclid": null,
+                "lynx_mode": "ASYNCLAZY"
+              },
+              "mobileUrl": "https://lm.facebook.com/l.php?u=https%3A%2F%2Flin.ee%2FumObJBN&h=ASWeAJpu4uy6rhqbF5q61rZf6RIO4dIbH3PHQqtxxPL9zZs0K_dVpI0_SgFd3GSd-1cyihZeIbU76K_Zv1DCtzXH3NjXrk8UtvXYyXynTtXC5P7HG5gU4uzfU8vQlPw_51OtSyVcRHltks_1BPUwtKcPCG8PjsUDkil_H828nmh59TxC&s=1",
+              "id": "NjQyMTgzOTU5MjA4MTA3Omh0dHBzXGEvL2xpbi5lZS91bU9iSkJOOjpEZWZhdWx0Ojo6MTM2NzAyNTA3NTQ1MjUzOQ=="
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sosofitelhuahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sosofitelhuahin",
+              "id": "890179797736910"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sohotels?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sohotels",
+              "id": "673956439303135"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/sohotelsandresort?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/sohotelsandresort",
+              "id": "2709051752479125"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/chaambeach?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/chaambeach",
+              "id": "156215974545647"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/huahin?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/huahin",
+              "id": "138572742981740"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/beachhotel?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/beachhotel",
+              "id": "636527073028115"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/waterscooter?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/waterscooter",
+              "id": "528071407244095"
+            },
+            {
+              "url": "https://www.facebook.com/hashtag/wateractivities?__eep__=6",
+              "mobileUrl": "https://m.facebook.com/hashtag/wateractivities",
+              "id": "291047284359343"
+            }
+          ],
+          "link": "https://bit.ly/4oSEDjM",
+          "likes": 14,
+          "comments": 1,
+          "shares": 3,
+          "topReactionsCount": 3,
+          "media": [
+            {
+              "thumbnail": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/631534881_1363011782520535_8784666129305271377_n.jpg?stp=dst-jpg_s640x640_tt6&_nc_cat=108&ccb=1-7&_nc_sid=13d280&_nc_ohc=g8NdWkCLpT0Q7kNvwGjm6ch&_nc_oc=Adnz1DZWsGPFgm3-oGUGXNs8hqkAwsX44qnH53cgQrjsRAKg3ujPOflO4dS3WHe3eQvz1QmjUmud5g0ccY9RLP_H&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfuYjHVuiEcVJ7tm6Cnj3DGnKrjusbZq6jboTzQGlpRFHg&oe=699CEF8C",
+              "__typename": "Photo",
+              "__isMedia": "Photo",
+              "accent_color": "FF82D4ED",
+              "photo_product_tags": [],
+              "photo_image": {
+                "uri": "https://scontent-hou1-1.xx.fbcdn.net/v/t39.30808-6/631534881_1363011782520535_8784666129305271377_n.jpg?stp=dst-jpg_s640x640_tt6&_nc_cat=108&ccb=1-7&_nc_sid=13d280&_nc_ohc=g8NdWkCLpT0Q7kNvwGjm6ch&_nc_oc=Adnz1DZWsGPFgm3-oGUGXNs8hqkAwsX44qnH53cgQrjsRAKg3ujPOflO4dS3WHe3eQvz1QmjUmud5g0ccY9RLP_H&_nc_zt=23&_nc_ht=scontent-hou1-1.xx&_nc_gid=UaDx_la8v5Hok1aVsqlxRA&oh=00_AfuYjHVuiEcVJ7tm6Cnj3DGnKrjusbZq6jboTzQGlpRFHg&oe=699CEF8C",
+                "height": 640,
+                "width": 512
+              },
+              "url": "https://www.facebook.com/photo/?fbid=1367025042119209&set=a.654469050041482",
+              "id": "1367025042119209",
+              "feedback": {
+                "can_viewer_comment": false,
+                "id": "ZmVlZGJhY2s6MTM2NzAyNTA3NTQ1MjUzOQ=="
+              },
+              "ocrText": "May be an image of child, swimming and pool"
+            }
+          ],
+          "feedbackId": "ZmVlZGJhY2s6MTM2NzAyNTA3NTQ1MjUzOQ==",
+          "reactionLikeCount": 11,
+          "reactionLoveCount": 2,
+          "reactionWowCount": 1,
+          "topLevelUrl": "https://www.facebook.com/100064351795386/posts/1367025075452539",
+          "facebookId": "100064351795386",
+          "pageAdLibrary": {
+            "is_business_page_active": true,
+            "id": "1706839996218380"
+          },
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Apify : Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Apify : Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify : Facebook": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify : Instagram": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analysis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analysis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Competitors_List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        []
+      ]
+    },
+    "Competitors_List": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analysis Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector": {
+      "ai_tool": [
+        [
+          {
+            "node": "Analysis Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "678d83cf-1f0f-4c57-b4e8-b5bb2e9fafa6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5b842cbf775571ba67e4c63c905d43a0013d780ec254358ef2b0df05d87423fb"
+  },
+  "id": "dCOQQ9ltasPKydLI",
+  "tags": []
+}

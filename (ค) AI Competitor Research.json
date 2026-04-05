@@ -1,0 +1,1659 @@
+{
+  "name": "(ค) AI Competitor Research",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        16
+      ],
+      "id": "8d90c437-08a5-46d1-9c86-938ef7badf90",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitors_List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ชีต1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        16
+      ],
+      "id": "dfd1ebe4-a1a0-4c58-a648-6d0eebbbaedb",
+      "name": "Competitors_List",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        832,
+        16
+      ],
+      "id": "9049f8b8-59e1-40b0-ab18-7ea96cfc85b2",
+      "name": "Loop Over Items",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~facebook-ads-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR_APIFY_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startUrls\": [\n    { \"url\": \"{{ $json.URL }}\" }\n  ],\n  \"resultsLimit\": 5,\n  \"adActiveStatus\": \"ACTIVE\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1312,
+        16
+      ],
+      "id": "83dd6296-0a14-4de3-bc37-bf8f2105042b",
+      "name": "Apify : Facebook",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecff1de1-25fc-49d7-86e2-9d7c0dd6019f",
+              "leftValue": "={{ $json.total_ads }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1728,
+        16
+      ],
+      "id": "ff5a7ad2-e7d0-4206-957a-7e17cddef34f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cd369c06-59b8-4ddb-991f-bf0305f324e0",
+              "name": "Competitor_Name",
+              "value": "={{ $('Loop Over Items').first().json.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "f6aed7c9-6518-4482-8035-88d68fc59dcc",
+              "name": "Strategy_Summary",
+              "value": "={{ JSON.parse($json.output[0].content[0].text.replace(/```json|```/gi, '')).strategy }}",
+              "type": "string"
+            },
+            {
+              "id": "37f2cc75-e83d-43cc-a4b8-eb270dba1759",
+              "name": "Key_Offer",
+              "value": "={{ JSON.parse($json.output[0].content[0].text.replace(/```json|```/gi, '')).key_offer }}",
+              "type": "string"
+            },
+            {
+              "id": "53952c23-7ab6-4309-b7ba-c9dac2b697ed",
+              "name": "Ads_Found",
+              "value": "={{ $('Code in JavaScript').item.json.total_ads }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2336,
+        -80
+      ],
+      "id": "bcb8b055-b170-46c0-9ccf-c76215a8f6b6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst realAds = items.map(item => {\n  const json = item.json;\n  const data = json.snapshot || json;\n\n  // ฟังก์ชันช่วยแกะข้อความ (ไม่ว่าจะเป็น String หรือ Object)\n  const safeString = (val) => {\n    if (!val) return \"\";\n    if (typeof val === 'string') return val;\n    // ถ้าเป็น Object ให้แปลงเป็นข้อความ JSON จะได้ไม่ออกมาเป็น [object Object]\n    return JSON.stringify(val);\n  };\n\n  // ดึงค่าและแปลงให้ปลอดภัยทันที\n  let rawText = safeString(data.primaryText) ||\n                safeString(data.body) ||\n                safeString(data.title) ||\n                safeString(data.caption) ||\n                (data.cards && data.cards.length > 0 ? safeString(data.cards[0].body) : \"\") ||\n                \"ไม่มีข้อความ\";\n\n  return {\n    text: rawText, // ตอนนี้เป็น Text ชัวร์ๆ แล้ว\n    imageUrl: data.imageUrl || data.thumbnail || \"\",\n    original_data: data\n  };\n}).filter(ad => {\n  return ad.text !== \"ไม่มีข้อความ\" && \n         ad.text !== \"\" && \n         !ad.text.includes(\"{{product.name}}\");\n});\n\nreturn {\n  json: {\n    ads_data: realAds,\n    total_ads: realAds.length,\n    has_active_ads: realAds.length > 0\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        16
+      ],
+      "id": "8ff77c66-a406-4484-a9b2-59f08f5f6553",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=นี่คือรายการข้อความโฆษณา (Ad Copy) ล่าสุดจากคู่แข่งรายหนึ่ง:\n\n{{ $json.ads_data.map(item => \"- \" + item.text).join(\"\\n\") }}\n\n----------------\nคำสั่ง:\nจากข้อความโฆษณาทั้งหมดนี้ ให้วิเคราะห์และสรุปสั้นๆ 3 ข้อ (เป็นภาษาไทย):\n1. [Strategy]: เขากำลังใช้กลยุทธ์อะไร?\n2. [Key Offer]: ข้อเสนอหลักคืออะไร?\n3. [Tone]: น้ำเสียงการขายเป็นอย่างไร?\n\nตอบกลับเป็น JSON Format เท่านั้น โดยใช้ key ดังนี้: { \"strategy\": \"...\", \"key_offer\": \"...\", \"tone\": \"...\" }"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1936,
+        -80
+      ],
+      "id": "8cfe7424-db2f-4eb0-87cf-cad900f13a93",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1112050771,
+          "mode": "list",
+          "cachedResultName": "Ads_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=1112050771"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Competitor": "={{ $json.Competitor_Name }}",
+            "Strategy": "={{ $json.Strategy_Summary }}",
+            "Key_Offer": "={{ $json.Key_Offer }}",
+            "Ads_Count": "={{ $json.Ads_Found }}",
+            "Date": "={{ $now.toFormat('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Competitor",
+              "displayName": "Competitor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ads_Count",
+              "displayName": "Ads_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Strategy",
+              "displayName": "Strategy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Key_Offer",
+              "displayName": "Key_Offer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2544,
+        96
+      ],
+      "id": "fa6da241-f9d9-40b4-b72c-5e0733a4a2d6",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ca0498d4-8ea7-4f0e-8c35-d149fc1f0f48",
+              "leftValue": "={{ $json.URL }}",
+              "rightValue": "={{ $json.URL }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        32
+      ],
+      "id": "40d72810-27fd-447e-93f5-2d3bb85708dd",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ดึงข้อมูลจากโหนดก่อนหน้า (Google Sheets - Get Rows)\nconst allResults = $input.all().map(item => item.json);\n\n// กรองเฉพาะข้อมูลของ \"วันนี้\" (เผื่อใน Sheet มีของเก่าปน)\n// ถ้าใน Sheet คอลัมน์วันที่ชื่อ 'Date' ให้ใช้ item.Date\n// ถ้าไม่มีคอลัมน์วันที่ หรืออยากเอาทั้งหมด ให้ลบบรรทัด filter ทิ้งได้ครับ\nconst todayStr = new Date().toLocaleDateString('en-CA'); // format YYYY-MM-DD\n// const todaysData = allResults.filter(item => item.Date && item.Date.includes(todayStr)); \nconst reportData = allResults; // ใช้ทั้งหมดไปก่อน (ถ้าอยากกรองค่อยแก้)\n\nlet html = `\n<html>\n<head>\n<style>\n  body { font-family: 'Sarabun', sans-serif; }\n  table { border-collapse: collapse; width: 100%; border: 1px solid #ddd; }\n  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }\n  th { background-color: #007bff; color: white; }\n  tr:nth-child(even) { background-color: #f2f2f2; }\n</style>\n</head>\n<body>\n  <h2>📊 รายงานสรุปคู่แข่ง (จาก Google Sheets)</h2>\n  <p>จำนวนรายการทั้งหมด: <strong>${reportData.length}</strong> ราย</p>\n  \n  <table>\n    <tr>\n      <th style=\"width: 20%\">คู่แข่ง</th>\n      <th style=\"width: 10%\">Ads</th>\n      <th style=\"width: 35%\">กลยุทธ์</th>\n      <th style=\"width: 35%\">ข้อเสนอ</th>\n    </tr>\n`;\n\nreportData.forEach(item => {\n  // ⚠️ เช็คชื่อหัวตารางใน Sheet ของคุณให้ตรงกับตัวแปรด้านล่างนี้\n  // เช่นถ้าใน Sheet หัวตารางเป็น \"Competitor\" ก็ใช้ item.Competitor\n  const name = item.Competitor || item.Competitor_Name || 'Unknown';\n  const ads = item.Ads_Count || item.Ads_Found || 0;\n  const strategy = item.Strategy || item.Strategy_Summary || '-';\n  const offer = item.Key_Offer || item.Key_Offer || '-';\n\n  html += `\n    <tr>\n      <td><strong>${name}</strong></td>\n      <td style=\"text-align: center;\">${ads}</td>\n      <td>${strategy}</td>\n      <td>${offer}</td>\n    </tr>\n  `;\n});\n\nhtml += `\n  </table>\n</body>\n</html>\n`;\n\nreturn {\n  json: {\n    html_report: html,\n    subject_date: new Date().toLocaleDateString('th-TH')\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        -176
+      ],
+      "id": "bfa6368f-832f-4176-979e-ca08406de924",
+      "name": "HTML Report"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@GMAIL.COM",
+        "subject": "=Daily Competitor Report - {{ $json.Date }}",
+        "message": "={{ $json.html_report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        -176
+      ],
+      "id": "d016301b-3072-4b78-b639-6ab2aad8c722",
+      "name": "Send a message",
+      "webhookId": "b2b69433-1ca8-4b10-a81a-d8e8cf73b64a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "uTLYWtNwvV78AMru",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1112050771,
+          "mode": "list",
+          "cachedResultName": "Ads_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=1112050771"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        -176
+      ],
+      "id": "03ac2313-7bfc-45a4-973f-01feb303ee80",
+      "name": "Get row(s) in sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -160
+      ],
+      "id": "b16c6903-ff65-463d-90ed-a35e7a28dea4",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        -448
+      ],
+      "id": "3503d45e-c356-4e52-a5bd-849d99bbbe43",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "competitor-data",
+          "mode": "list",
+          "cachedResultName": "competitor-data"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        -704
+      ],
+      "id": "784b4bdb-2c9a-40eb-8b70-141df57dae1b",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "k2VcSYJAwb2bK7tP",
+          "name": "Non : PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "=แบรนด์คู่แข่ง: {{ $json.Competitor }}\nวันที่เก็บข้อมูล: {{ $json.Date }}\nจำนวนโฆษณาที่พบ: {{ $json.Ads_Count }} แคมเปญ\nกลยุทธ์ที่ใช้ (Strategy): {{ $json.Strategy }}\nข้อเสนอหลัก (Key Offer): {{ $json.Key_Offer }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        -464
+      ],
+      "id": "a91293cb-ac78-4202-9638-298e93508de6",
+      "name": "Default Data Loader"
+    }
+  ],
+  "pinData": {
+    "Apify : Facebook": [
+      {
+        "json": {
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "pageInfo": {
+            "adLibrarySystemStatus": {
+              "systemStatus": {
+                "status": "NO_KNOWN_ISSUES",
+                "activeIssues": []
+              }
+            },
+            "adLibraryPageInfo": {
+              "pageInfo": {
+                "relatedPages": [],
+                "hasBlankAds": false,
+                "hiddenAds": 0,
+                "pageIsDeleted": false
+              }
+            },
+            "page": {
+              "name": "SO Sofitel Hua Hin",
+              "id": "1706839996218380"
+            },
+            "adLibraryUser": null
+          },
+          "pageID": "1706839996218380",
+          "adArchiveID": "1441341447513595",
+          "startDateFormatted": "2026-01-08T08:00:00.000Z",
+          "endDateFormatted": "2026-01-23T08:00:00.000Z",
+          "adArchiveId": "1441341447513595",
+          "collationCount": 1,
+          "collationId": "1396123502264755",
+          "pageId": "1706839996218380",
+          "snapshot": {
+            "brandedContent": null,
+            "pageId": "1706839996218380",
+            "pageIsDeleted": false,
+            "pageProfileUri": "https://www.facebook.com/SOSofitelHuaHin/",
+            "rootResharedPost": null,
+            "byline": "",
+            "disclaimerLabel": null,
+            "pageName": "SO Sofitel Hua Hin",
+            "pageProfilePictureUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/611166774_1272472444692950_8312062748199098567_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=zVDDKd5BRqkQ7kNvwHPNCxi&_nc_oc=Adl2pfD5hki84SqNClxB5O3kORXHQfefdjCBChnfHl7uVUwxnj69arav8SaoBGwji6mGFWcNtsVJD6kjfxLKMKs2&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvquGBB4CyCgLCP5Mh2DTBq3v-V3d3KS2ujag8MP4uw2w&oe=698364DA",
+            "event": null,
+            "caption": "www.so-sofitel-huahin.com",
+            "ctaText": "Contact us",
+            "cards": [
+              {
+                "body": "Say \"I do\" in paradise! 🌅\nImagine a luxurious sunset beach wedding at SO/ Sofitel Hua Hin. \nIntimate ceremonies to grand seaside receptions, our experts craft every detail to perfection.\nStarting from THB 149,999. Ready to make unforgettable memories? Book now and let's get started!",
+                "ctaType": "CONTACT_US",
+                "caption": "www.so-sofitel-huahin.com",
+                "linkDescription": " Dream Beach Wedding start at 149,999 THB",
+                "linkUrl": "https://www.so-sofitel-huahin.com/hua-hin-wedding?utm_source=meta&utm_medium=cpcen&utm_campaign=9649-weddingen-2026",
+                "title": "Say \"I Do\" at SO/ Sofitel Hua Hin 🥂",
+                "ctaText": "Contact Us",
+                "videoHdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQOpMy2KQD3xkdKt7qo_xABjLQojQ53a2U0qKjOkUCJTmaorXXaQODPGtuOgj-E81AcF7Bhd3moLyxJA4FBHl7CaVLzQPSh7MeQk2nOz7o9zEg.mp4?_nc_cat=104&_nc_sid=5e9851&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=gWzEH_JGEIsQ7kNvwEvA1X6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjE1Njg1ODYzMjExMjQ4MjEsImFzc2V0X2FnZV9kYXlzIjoyMiwidmlfdXNlY2FzZV9pZCI6MTA3OTksImR1cmF0aW9uX3MiOjMwLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=2b50116a3c047057&_nc_vs=HBksFQIYRWZiX2VwaGVtZXJhbC82MzQ3NDEzNzM1N0QxQjUzM0UxMTBGMEM0MDUxRjI5Ml9tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAVAhhAZmJfcGVybWFuZW50Lzk5NDQ4QjhCNTY4NjE5NTlEQUU4QTY0OEFDOTVEQkIwX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaq98Ln3qfJBRUCKAJDMywXQD4AAAAAAAAYGWRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHARAHUAZd6oAQA&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_AfvbP9IArrxhRm-VDc1-GD-Ayt2cCZ80qZsiR85j0oNq0A&oe=69837FC8",
+                "videoPreviewImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/613436664_1416745713495098_4060410782972460860_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=21cS97wze-YQ7kNvwH9udEB&_nc_oc=AdntsC3FYBgj5TubFvkJa6ZFcjJFoBuVOWpeRDaukFuFdb_26tCGR4Of8EWI_6bRvM733hekRzgW03DDtHA5T46v&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsxmZtXEJmPHcy_q_oN1n-9SnOjURuG1p7s_ePsYfncHA&oe=69837007",
+                "videoSdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQMAB5cF69-pEkxF5xdYkSOO6-effWYUZgjq6Xp6NpshLfBTsw8sZeo7Y51q-3aUStY0PkOnFqqylyvi7FzX9tnWZizWcQHJZIur3EeUzw.mp4?_nc_cat=101&_nc_sid=8bf8fe&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=ykbtxh2bIwYQ7kNvwEvGByM&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuMzYwLnN2ZV9zZCIsInhwdl9hc3NldF9pZCI6MTU2ODU4NjMyMTEyNDgyMSwiYXNzZXRfYWdlX2RheXMiOjIyLCJ2aV91c2VjYXNlX2lkIjoxMDc5OSwiZHVyYXRpb25fcyI6MzAsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_Afs6FH0FM2tQcYvYx6w44WG1_Njmu2bmT0GKntX6xEByCQ&oe=69836D79",
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": null,
+                "resizedImageUrl": null,
+                "watermarkedResizedImageUrl": null
+              },
+              {
+                "body": "Say \"I do\" in paradise! 🌅 Imagine an intimate beach ceremony, followed by a grand seaside reception. Our experts will take care of every detail so you can focus on what matters most - your love story. Packages start at THB 149,999. Ready to make unforgettable memories?",
+                "ctaType": "CONTACT_US",
+                "caption": "www.so-sofitel-huahin.com",
+                "linkDescription": " Dream Beach Wedding start at 149,999 THB",
+                "linkUrl": "https://www.so-sofitel-huahin.com/hua-hin-wedding?utm_source=meta&utm_medium=cpcen&utm_campaign=9649-weddingen-2026",
+                "title": "Say \"I Do\" at SO/ Sofitel Hua Hin 🥂",
+                "ctaText": "Contact Us",
+                "videoHdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQOpMy2KQD3xkdKt7qo_xABjLQojQ53a2U0qKjOkUCJTmaorXXaQODPGtuOgj-E81AcF7Bhd3moLyxJA4FBHl7CaVLzQPSh7MeQk2nOz7o9zEg.mp4?_nc_cat=104&_nc_sid=5e9851&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=gWzEH_JGEIsQ7kNvwEvA1X6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjE1Njg1ODYzMjExMjQ4MjEsImFzc2V0X2FnZV9kYXlzIjoyMiwidmlfdXNlY2FzZV9pZCI6MTA3OTksImR1cmF0aW9uX3MiOjMwLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=2b50116a3c047057&_nc_vs=HBksFQIYRWZiX2VwaGVtZXJhbC82MzQ3NDEzNzM1N0QxQjUzM0UxMTBGMEM0MDUxRjI5Ml9tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAVAhhAZmJfcGVybWFuZW50Lzk5NDQ4QjhCNTY4NjE5NTlEQUU4QTY0OEFDOTVEQkIwX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaq98Ln3qfJBRUCKAJDMywXQD4AAAAAAAAYGWRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHARAHUAZd6oAQA&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_AfvbP9IArrxhRm-VDc1-GD-Ayt2cCZ80qZsiR85j0oNq0A&oe=69837FC8",
+                "videoPreviewImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/613436664_1416745713495098_4060410782972460860_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=21cS97wze-YQ7kNvwH9udEB&_nc_oc=AdntsC3FYBgj5TubFvkJa6ZFcjJFoBuVOWpeRDaukFuFdb_26tCGR4Of8EWI_6bRvM733hekRzgW03DDtHA5T46v&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsxmZtXEJmPHcy_q_oN1n-9SnOjURuG1p7s_ePsYfncHA&oe=69837007",
+                "videoSdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQMAB5cF69-pEkxF5xdYkSOO6-effWYUZgjq6Xp6NpshLfBTsw8sZeo7Y51q-3aUStY0PkOnFqqylyvi7FzX9tnWZizWcQHJZIur3EeUzw.mp4?_nc_cat=101&_nc_sid=8bf8fe&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=ykbtxh2bIwYQ7kNvwEvGByM&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuMzYwLnN2ZV9zZCIsInhwdl9hc3NldF9pZCI6MTU2ODU4NjMyMTEyNDgyMSwiYXNzZXRfYWdlX2RheXMiOjIyLCJ2aV91c2VjYXNlX2lkIjoxMDc5OSwiZHVyYXRpb25fcyI6MzAsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_Afs6FH0FM2tQcYvYx6w44WG1_Njmu2bmT0GKntX6xEByCQ&oe=69836D79",
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": null,
+                "resizedImageUrl": null,
+                "watermarkedResizedImageUrl": null
+              },
+              {
+                "body": "Say \"I do\" in paradise! 🌅 \nImagine an intimate beach ceremony, followed by a grand seaside reception. Our wedding experts will make it unforgettable!\nPackages start at THB 149,999. Ready to plan your dream wedding?",
+                "ctaType": "CONTACT_US",
+                "caption": "www.so-sofitel-huahin.com",
+                "linkDescription": " Dream Beach Wedding start at 149,999 THB",
+                "linkUrl": "https://www.so-sofitel-huahin.com/hua-hin-wedding?utm_source=meta&utm_medium=cpcen&utm_campaign=9649-weddingen-2026",
+                "title": "Say \"I Do\" at SO/ Sofitel Hua Hin 🥂",
+                "ctaText": "Contact Us",
+                "videoHdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQOpMy2KQD3xkdKt7qo_xABjLQojQ53a2U0qKjOkUCJTmaorXXaQODPGtuOgj-E81AcF7Bhd3moLyxJA4FBHl7CaVLzQPSh7MeQk2nOz7o9zEg.mp4?_nc_cat=104&_nc_sid=5e9851&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=gWzEH_JGEIsQ7kNvwEvA1X6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjE1Njg1ODYzMjExMjQ4MjEsImFzc2V0X2FnZV9kYXlzIjoyMiwidmlfdXNlY2FzZV9pZCI6MTA3OTksImR1cmF0aW9uX3MiOjMwLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=2b50116a3c047057&_nc_vs=HBksFQIYRWZiX2VwaGVtZXJhbC82MzQ3NDEzNzM1N0QxQjUzM0UxMTBGMEM0MDUxRjI5Ml9tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAVAhhAZmJfcGVybWFuZW50Lzk5NDQ4QjhCNTY4NjE5NTlEQUU4QTY0OEFDOTVEQkIwX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaq98Ln3qfJBRUCKAJDMywXQD4AAAAAAAAYGWRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHARAHUAZd6oAQA&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_AfvbP9IArrxhRm-VDc1-GD-Ayt2cCZ80qZsiR85j0oNq0A&oe=69837FC8",
+                "videoPreviewImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/613436664_1416745713495098_4060410782972460860_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=21cS97wze-YQ7kNvwH9udEB&_nc_oc=AdntsC3FYBgj5TubFvkJa6ZFcjJFoBuVOWpeRDaukFuFdb_26tCGR4Of8EWI_6bRvM733hekRzgW03DDtHA5T46v&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsxmZtXEJmPHcy_q_oN1n-9SnOjURuG1p7s_ePsYfncHA&oe=69837007",
+                "videoSdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQMAB5cF69-pEkxF5xdYkSOO6-effWYUZgjq6Xp6NpshLfBTsw8sZeo7Y51q-3aUStY0PkOnFqqylyvi7FzX9tnWZizWcQHJZIur3EeUzw.mp4?_nc_cat=101&_nc_sid=8bf8fe&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=ykbtxh2bIwYQ7kNvwEvGByM&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuMzYwLnN2ZV9zZCIsInhwdl9hc3NldF9pZCI6MTU2ODU4NjMyMTEyNDgyMSwiYXNzZXRfYWdlX2RheXMiOjIyLCJ2aV91c2VjYXNlX2lkIjoxMDc5OSwiZHVyYXRpb25fcyI6MzAsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_Afs6FH0FM2tQcYvYx6w44WG1_Njmu2bmT0GKntX6xEByCQ&oe=69836D79",
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": null,
+                "resizedImageUrl": null,
+                "watermarkedResizedImageUrl": null
+              },
+              {
+                "body": "💍Plan your unforgettable beach wedding starting from THB 149,999. From private shore vows to chic sunset receptions, SO/ Sofitel Hua Hin offers the perfect service for your love story. 🌊 Let our specialists make your romantic moments in a truly unique beachfront destination. 🔗 Celebrate your love with us! Click >> bit.ly/SO-Wedding-EN2026\n.\nYour Dream Beach Wedding comes true!\n☎ Call 032709501, 032709529, and 032709530\n\n#sosofitelhuahin #HuaHinWedding #WeddingInHuaHin #BeachWedding #beachfront",
+                "ctaType": "CONTACT_US",
+                "caption": "www.so-sofitel-huahin.com",
+                "linkDescription": " Dream Beach Wedding start at 149,999 THB",
+                "linkUrl": "https://www.so-sofitel-huahin.com/hua-hin-wedding?utm_source=meta&utm_medium=cpcen&utm_campaign=9649-weddingen-2026",
+                "title": "Say \"I Do\" at SO/ Sofitel Hua Hin 🥂",
+                "ctaText": "Contact Us",
+                "videoHdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m366/AQOpMy2KQD3xkdKt7qo_xABjLQojQ53a2U0qKjOkUCJTmaorXXaQODPGtuOgj-E81AcF7Bhd3moLyxJA4FBHl7CaVLzQPSh7MeQk2nOz7o9zEg.mp4?_nc_cat=104&_nc_sid=5e9851&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=gWzEH_JGEIsQ7kNvwEvA1X6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjE1Njg1ODYzMjExMjQ4MjEsImFzc2V0X2FnZV9kYXlzIjoyMiwidmlfdXNlY2FzZV9pZCI6MTA3OTksImR1cmF0aW9uX3MiOjMwLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=2b50116a3c047057&_nc_vs=HBksFQIYRWZiX2VwaGVtZXJhbC82MzQ3NDEzNzM1N0QxQjUzM0UxMTBGMEM0MDUxRjI5Ml9tdF8xX3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBEgAVAhhAZmJfcGVybWFuZW50Lzk5NDQ4QjhCNTY4NjE5NTlEQUU4QTY0OEFDOTVEQkIwX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaq98Ln3qfJBRUCKAJDMywXQD4AAAAAAAAYGWRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHARAHUAZd6oAQA&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_AfvbP9IArrxhRm-VDc1-GD-Ayt2cCZ80qZsiR85j0oNq0A&oe=69837FC8",
+                "videoPreviewImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/613436664_1416745713495098_4060410782972460860_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=21cS97wze-YQ7kNvwH9udEB&_nc_oc=AdntsC3FYBgj5TubFvkJa6ZFcjJFoBuVOWpeRDaukFuFdb_26tCGR4Of8EWI_6bRvM733hekRzgW03DDtHA5T46v&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsxmZtXEJmPHcy_q_oN1n-9SnOjURuG1p7s_ePsYfncHA&oe=69837007",
+                "videoSdUrl": "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m412/AQMAB5cF69-pEkxF5xdYkSOO6-effWYUZgjq6Xp6NpshLfBTsw8sZeo7Y51q-3aUStY0PkOnFqqylyvi7FzX9tnWZizWcQHJZIur3EeUzw.mp4?_nc_cat=101&_nc_sid=8bf8fe&_nc_ht=video-iad3-1.xx.fbcdn.net&_nc_ohc=ykbtxh2bIwYQ7kNvwEvGByM&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5WSV9VU0VDQVNFX1BST0RVQ1RfVFlQRS4uQzMuMzYwLnN2ZV9zZCIsInhwdl9hc3NldF9pZCI6MTU2ODU4NjMyMTEyNDgyMSwiYXNzZXRfYWdlX2RheXMiOjIyLCJ2aV91c2VjYXNlX2lkIjoxMDc5OSwiZHVyYXRpb25fcyI6MzAsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&_nc_zt=28&oh=00_Afs6FH0FM2tQcYvYx6w44WG1_Njmu2bmT0GKntX6xEByCQ&oe=69836D79",
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": null,
+                "resizedImageUrl": null,
+                "watermarkedResizedImageUrl": null
+              }
+            ],
+            "body": {
+              "text": "{{product.brand}}"
+            },
+            "ctaType": "CONTACT_US",
+            "displayFormat": "DCO",
+            "linkDescription": "{{product.description}}",
+            "linkUrl": "https://www.so-sofitel-huahin.com/hua-hin-wedding?utm_source=meta&utm_medium=cpcen&utm_campaign=9649-weddingen-2026",
+            "images": [],
+            "pageCategories": [
+              "Resort"
+            ],
+            "pageLikeCount": 101972,
+            "title": "{{product.name}}",
+            "videos": [],
+            "isReshared": false,
+            "extraLinks": [],
+            "extraTexts": [],
+            "extraImages": [],
+            "extraVideos": [],
+            "countryIsoCode": null,
+            "brazilTaxId": null,
+            "additionalInfo": null,
+            "ecCertificates": []
+          },
+          "isActive": false,
+          "hasUserReported": false,
+          "reportCount": null,
+          "menuItems": [],
+          "stateMediaRunLabel": null,
+          "pageIsDeleted": false,
+          "pageName": "SO Sofitel Hua Hin",
+          "impressionsWithIndex": {
+            "impressionsText": null,
+            "impressionsIndex": -1
+          },
+          "gatedType": "AD_ACCOUNT_DISABLED",
+          "categories": [
+            "UNKNOWN"
+          ],
+          "isAaaEligible": false,
+          "containsDigitalCreatedMedia": false,
+          "reachEstimate": null,
+          "currency": "",
+          "spend": null,
+          "endDate": 1769155200,
+          "publisherPlatform": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "startDate": 1767859200,
+          "containsSensitiveContent": false,
+          "totalActiveTime": null,
+          "regionalRegulationData": {
+            "finserv": {
+              "isDeemedFinserv": false,
+              "isLimitedDelivery": false
+            },
+            "twAntiScam": {
+              "isLimitedDelivery": false
+            }
+          },
+          "hideDataStatus": "NONE",
+          "fevInfo": null,
+          "adId": null,
+          "targetedOrReachedCountries": []
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "pageInfo": {
+            "adLibrarySystemStatus": {
+              "systemStatus": {
+                "status": "NO_KNOWN_ISSUES",
+                "activeIssues": []
+              }
+            },
+            "adLibraryPageInfo": {
+              "pageInfo": {
+                "relatedPages": [],
+                "hasBlankAds": false,
+                "hiddenAds": 0,
+                "pageIsDeleted": false
+              }
+            },
+            "page": {
+              "name": "SO Sofitel Hua Hin",
+              "id": "1706839996218380"
+            },
+            "adLibraryUser": null
+          },
+          "pageID": "1706839996218380",
+          "adArchiveID": "1452827285371329",
+          "startDateFormatted": "2024-09-29T07:00:00.000Z",
+          "endDateFormatted": "2025-01-31T08:00:00.000Z",
+          "adArchiveId": "1452827285371329",
+          "collationCount": 1,
+          "collationId": "1724542834977221",
+          "pageId": "1706839996218380",
+          "snapshot": {
+            "brandedContent": null,
+            "pageId": "1706839996218380",
+            "pageIsDeleted": false,
+            "pageProfileUri": "https://www.facebook.com/SOSofitelHuaHin/",
+            "rootResharedPost": null,
+            "byline": null,
+            "disclaimerLabel": null,
+            "pageName": "SO Sofitel Hua Hin",
+            "pageProfilePictureUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/459787093_3817148281889554_3957648170676453643_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=fgXaLlAzfsQQ7kNvwEsFiga&_nc_oc=Adn3kHApm1F9DVzj94Y_ErLYX3asuNTDQZtXZLyZQYTJu86D9iGlh70jnk265ndSnigXBEvAQGt5vROPz_c7Vez0&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsmuevOpSUVjKgs31pj2bsBknHpPRq-LEqfLfO3aASKlA&oe=698393B4",
+            "event": null,
+            "caption": "so-sofitel-huahin.com",
+            "ctaText": "Book now",
+            "cards": [
+              {
+                "body": "From USD136++",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD136++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Family Retreat",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459441730_1047791086899946_1913681521442656662_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=LMPuG04mFNIQ7kNvwHfLQFp&_nc_oc=AdmgDBV7Kz5_5qjCv8UroiGMNPiZwWEwjAg5Act91sdkKjVapXnzkGJ05fYEuNDOwXNHw1aCfacfWPYsn-diLBYB&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvyAlmxSZ42bLcbcvngMBXYc_h0M6cWYVhFWvgN5-IE4Q&oe=69837714",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459786794_894882805875501_4383623669957894443_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=N1sV4J_9HHsQ7kNvwHnl57M&_nc_oc=AdnWPEEGrhKRXhfSQLiVelHIYfW76v-guL352_KQ1NE2wAZ-mrqOR5l3bP87VWWh8EkTQ5z4l4QC3uVMLNX3XGWu&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuL8-Yd1MN9NRiAJymidgakhiUR9Y1lwMZPoNl20xQ_QQ&oe=69838154",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "From USD136++",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD136++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Pool Villas & Rooms",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459410331_1712408229509111_1239849194203565496_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Q6nkAseAEwIQ7kNvwHHaGYp&_nc_oc=AdmzEFwXCWng7Zpae-GLK4QKXFgCfXSNJ4KfFaWugCU-wGGs0MPFNP4HwwpZRn_-5WJ-8GL7RGgYaMIqPV741ipf&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Aft74rzaLfMQq75NI6AKcsybnNeDwJcfUAlXzIk8VY76KQ&oe=69838279",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459845147_876035924091485_2706393864694596136_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=9BcP_2zacvIQ7kNvwEv0WTI&_nc_oc=AdlIn3RDaDT2YQflK-hm99yns3JSBEVJj_KLahG2Mb7klOLotMjvBQ1NeRiS6UfupYJQFpYwgRXCOBEP98WCchLq&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Aft5cMJCay6KeRyiNEsXCt2AD4F3Te01qu3El7Zw61NuSA&oe=698376E7",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Private beachfront",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Private beachfront",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Unforgettable seaside holiday",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/460514535_422610097076746_4855506918025241338_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1_2XmXXYvlcQ7kNvwFYBGav&_nc_oc=AdkBtq9k-nUC7bqn_hrGGxT3jEuNiOJmPYGuqQ2sECe9WBJgv-41Wqwc7_CK4ScF17nT85UffpJmX4zXHZ0o9QxI&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AftEjK5tvx7cqLEE-v1t4JgyeuTHpkeRYWtgQv6ZL6IMFQ&oe=69837A5D",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459711208_2581943192007468_295838459084929409_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=hfSUSOhDjhkQ7kNvwE16vbT&_nc_oc=AdndnMcjivpARPbtMF9Cubylgw9j22HJteio-pBn7nBgDldMSOoLuK0ebXWqQniyFe6nuwBDUC0nVjM1kNALZPUn&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvSEt54DnnlKHwdmJ9XytUpslbhsl0WQ0QfouS2--PU5Q&oe=69838CDE",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Pools & Kids Tent",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Pools & Kids Tent",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Activities for Everyone",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/459407099_891875266148377_792220895629498352_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=se2eVSiQq4kQ7kNvwF8Zkqs&_nc_oc=Adk7iC5gsmBYAtEKJS9FhtwGecu3lbJX1mwBgQsOtD_s1B0JLV9oV6g0I9tB1G5A7RMkZfdXH6ryLxhd2IpKskNY&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Aft2RfaQBHqqQ4bq4bNS8qvAawwLxHieznsqixrUt5WUxg&oe=69838B9A",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/459754129_873553754370782_1521160117118700507_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ySZHD4er6mUQ7kNvwGmWKw2&_nc_oc=Adn_spKhJxrYdRvrMtiSHqlRcnNbk6bfTGEQBjgK0KllfBPKFnrHTiMv03J1MvcTJrmWQAk-FVnhuR4pEFG7VWG0&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvVssgKXETq-MfTd0OsFVjqp9Cyuizq8zI1T_NbD_cVwA&oe=69837533",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Restaurants & Bars",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Restaurants & Bars",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Local Cuisine",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/459632447_2702092779970654_6216769281315255392_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=BDA3fMOizkkQ7kNvwFWMAmu&_nc_oc=AdltJV-8k9-Mfzs5YfBnCsbaZrlTlKQO58hxFIjfk4cPSP3OKOmhgDNB92BUGD5k03oAm2at5wjfAoDSpX2wUUsd&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvJX2atvI03L9gb_P7v4rOSHMHJTHuSBBChbqbO4nfS4Q&oe=698376AF",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459624113_488297907415440_6150538466262301038_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=YR_CRYbkMJAQ7kNvwE4efZl&_nc_oc=AdlSqJl1pb4JKVtd1Bd-nOmzJuWAGwLVRAa25i9BrIrYaJttGDJ9_pGVaUQ7NeA092jd_xtEIWlsA1big5h9T0LJ&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuWno_nmqNUre0RZyYRWUATFu1y4tX1il2PJ_lmiD0r1Q&oe=6983738E",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "SO/ Spa",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "SO/ Spa",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Wellness retreat",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/459393471_1700650407367446_7423575895005134653_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=aoSh1dFmAdoQ7kNvwGgVRl0&_nc_oc=Adn7VJ-mWH6_wVI7WIvWFXyE8Oc5HOeFX7xNAPM8-F68FHLLGDqWZpjvxAEJfXw3b77K7aqQmFC7MR7DDsVMSGP6&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfudmR6J9f7Hbac-IeZp2j0D7h-7E9CSWE7CILP8BxSi0A&oe=69838DC8",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/459684194_879727990291986_8776569263745867327_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=OXB6-Lu3zoMQ7kNvwHySgvy&_nc_oc=AdltcpZ0deXDpJlPEYgLJ_v0vN_cMisl---e8zzM3zblBjAMsTsJidNDXRGWNSZc9Pv7UbjsNVscPhLVx6Qbpf4V&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsG_TEKGzGmO-G13nG_RzURLiah30nhnGeZJUHxQog9vg&oe=698397A0",
+                "watermarkedResizedImageUrl": ""
+              }
+            ],
+            "body": {
+              "text": "Experience the beachfront getaway at SO Sofitel Hua Hin, nestled in the heart of Cha-am, Hua Hin. Immerse yourself in fun and create cherished family memories with sun-soaked days, relaxation, and exciting activities for everyone.\n\nExplore Thailand's premier beach destination and tailor your stay with options from luxurious rooms to private beachfront pool villas. Plan your escape now and secure the best deal by booking directly with us."
+            },
+            "ctaType": "BOOK_TRAVEL",
+            "displayFormat": "CAROUSEL",
+            "linkDescription": null,
+            "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+            "images": [],
+            "pageCategories": [
+              "Resort"
+            ],
+            "pageLikeCount": 101972,
+            "title": "SO Sofitel Hua Hin",
+            "videos": [],
+            "isReshared": false,
+            "extraLinks": [],
+            "extraTexts": [],
+            "extraImages": [],
+            "extraVideos": [],
+            "countryIsoCode": null,
+            "brazilTaxId": null,
+            "additionalInfo": null,
+            "ecCertificates": []
+          },
+          "isActive": false,
+          "hasUserReported": false,
+          "reportCount": null,
+          "menuItems": [],
+          "stateMediaRunLabel": null,
+          "pageIsDeleted": false,
+          "pageName": "SO Sofitel Hua Hin",
+          "impressionsWithIndex": {
+            "impressionsText": null,
+            "impressionsIndex": -1
+          },
+          "gatedType": "ELIGIBLE",
+          "categories": [
+            "UNKNOWN"
+          ],
+          "isAaaEligible": true,
+          "containsDigitalCreatedMedia": false,
+          "reachEstimate": null,
+          "currency": "",
+          "spend": null,
+          "endDate": 1738310400,
+          "publisherPlatform": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "startDate": 1727593200,
+          "containsSensitiveContent": false,
+          "totalActiveTime": null,
+          "regionalRegulationData": {
+            "finserv": {
+              "isDeemedFinserv": false,
+              "isLimitedDelivery": false
+            },
+            "twAntiScam": {
+              "isLimitedDelivery": false
+            }
+          },
+          "hideDataStatus": "NONE",
+          "fevInfo": null,
+          "adId": null,
+          "targetedOrReachedCountries": []
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "pageInfo": {
+            "adLibrarySystemStatus": {
+              "systemStatus": {
+                "status": "NO_KNOWN_ISSUES",
+                "activeIssues": []
+              }
+            },
+            "adLibraryPageInfo": {
+              "pageInfo": {
+                "relatedPages": [],
+                "hasBlankAds": false,
+                "hiddenAds": 0,
+                "pageIsDeleted": false
+              }
+            },
+            "page": {
+              "name": "SO Sofitel Hua Hin",
+              "id": "1706839996218380"
+            },
+            "adLibraryUser": null
+          },
+          "pageID": "1706839996218380",
+          "adArchiveID": "678332761339898",
+          "startDateFormatted": "2025-04-27T07:00:00.000Z",
+          "endDateFormatted": "2025-10-26T07:00:00.000Z",
+          "adArchiveId": "678332761339898",
+          "collationCount": 1,
+          "collationId": "691782866668783",
+          "pageId": "1706839996218380",
+          "snapshot": {
+            "brandedContent": null,
+            "pageId": "1706839996218380",
+            "pageIsDeleted": false,
+            "pageProfileUri": "https://www.facebook.com/SOSofitelHuaHin/",
+            "rootResharedPost": null,
+            "byline": null,
+            "disclaimerLabel": null,
+            "pageName": "SO Sofitel Hua Hin",
+            "pageProfilePictureUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/493279137_3063633857125417_8262579847966243552_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=6K4whtJzLfoQ7kNvwGfi5He&_nc_oc=AdmqUiW33152TuE7ydoK2z7h7rNk3rg15t6LISDRCQSLRjhnP43o4HYF0c9Hilqk1NADzjlhkRrGJvC4gV0yjbQi&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Aft8aHcHpbH3pjBwESY-1pmGwZRR6msl8edRuoCoIHry1A&oe=69836769",
+            "event": null,
+            "caption": "so-sofitel-huahin.com",
+            "ctaText": "Book now",
+            "cards": [
+              {
+                "body": "Escape to a world where playful charm meets beachfront luxury at SO Sofitel Hua Hin, set along the tranquil Cha-Am coast. Dive into sun-drenched adventures with thrilling experiences like the Wibit Adventure Float, imaginative kids' zones, and peaceful relaxation spots for grown-ups—all crafted for unforgettable family fun.\n\nWhether you’re lounging in a stylish room or making memories in a private beachfront pool villa, every stay offers a perfect balance of sophistication and excitement. Discover why SO Sofitel Hua Hin is Thailand’s go-to destination for families seeking a getaway that’s anything but ordinary.",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD124++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "SO Sofitel Hua Hin",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492405426_1343934973559205_2661696766962521384_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=JTFXeq_YFEAQ7kNvwGYRDPK&_nc_oc=Adlj-YdFayt6S8XyxJV7rOGmnp55EvDkpc1zsUpW06C3MkMXUYJanaGJU5840yi8mOUl39l29NHgzGBTvGmCaNpI&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AftT305vtjREgx0-oyaQyfb3dDt-D7J0xXaejfSmeQEm2Q&oe=69836A9D",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/493934605_4041831682724850_2775090713483947934_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=fEoHzbFrCKkQ7kNvwHMizH6&_nc_oc=AdmFHwawW4x4wq986eACfwW4YwulaTPxyhNRWN_BgIiHomU793QjOYWi8VnDBGtyttrAcK4Fzlll_VQ5caGlAY-x&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuPVef8C-LVOo7yUHm_LlEqbY5DCDJxvhNoyWO12kvTSw&oe=69837D40",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Escape to a world where playful charm meets beachfront luxury at SO Sofitel Hua Hin, set along the tranquil Cha-Am coast. Dive into sun-drenched adventures with thrilling experiences like the Wibit Adventure Float, imaginative kids' zones, and peaceful relaxation spots for grown-ups—all crafted for unforgettable family fun.\n\nWhether you’re lounging in a stylish room or making memories in a private beachfront pool villa, every stay offers a perfect balance of sophistication and excitement. Discover why SO Sofitel Hua Hin is Thailand’s go-to destination for families seeking a getaway that’s anything but ordinary.",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD124++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "SO Sofitel Hua Hin",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/492521417_457319774106277_5027908803190331836_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=IWcYjkycwiAQ7kNvwHO0b4I&_nc_oc=AdnGfcbZAQP0YRiVjOfBUXKD-Wx8qeA_WR7VAfn3VblPuyCrySlev1LQY8iHMssG_I2XzseOGvbIjjMzB0goY0wF&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afs-t6R4M9g8gx2SYcztIKXvk9aVPwBnhAIrgbenhXEZpg&oe=69837064",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/493723517_1385319875931234_9000513989711762618_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=gXpxwhtKekEQ7kNvwFN73y5&_nc_oc=Adnmko3xWFyRuj5nLMkjvGEoETJfJHxoqcUvw-lCivM3ThVfsbNHRRsSmCqEyxQUlMpMXAmpidOY-Sm2LPoBBe70&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuYFc9cnwbre2KAkjP8KEjbijKtQVadwIb8Wc53Tq1tiA&oe=698388A6",
+                "watermarkedResizedImageUrl": ""
+              }
+            ],
+            "body": {
+              "text": "{{product.brand}}"
+            },
+            "ctaType": "BOOK_TRAVEL",
+            "displayFormat": "DCO",
+            "linkDescription": "{{product.description}}",
+            "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+            "images": [],
+            "pageCategories": [
+              "Resort"
+            ],
+            "pageLikeCount": 101972,
+            "title": "{{product.name}}",
+            "videos": [],
+            "isReshared": false,
+            "extraLinks": [],
+            "extraTexts": [],
+            "extraImages": [],
+            "extraVideos": [],
+            "countryIsoCode": null,
+            "brazilTaxId": null,
+            "additionalInfo": null,
+            "ecCertificates": []
+          },
+          "isActive": false,
+          "hasUserReported": false,
+          "reportCount": null,
+          "menuItems": [],
+          "stateMediaRunLabel": null,
+          "pageIsDeleted": false,
+          "pageName": "SO Sofitel Hua Hin",
+          "impressionsWithIndex": {
+            "impressionsText": null,
+            "impressionsIndex": -1
+          },
+          "gatedType": "ELIGIBLE",
+          "categories": [
+            "UNKNOWN"
+          ],
+          "isAaaEligible": true,
+          "containsDigitalCreatedMedia": false,
+          "reachEstimate": null,
+          "currency": "",
+          "spend": null,
+          "endDate": 1761462000,
+          "publisherPlatform": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "startDate": 1745737200,
+          "containsSensitiveContent": false,
+          "totalActiveTime": null,
+          "regionalRegulationData": {
+            "finserv": {
+              "isDeemedFinserv": false,
+              "isLimitedDelivery": false
+            },
+            "twAntiScam": {
+              "isLimitedDelivery": false
+            }
+          },
+          "hideDataStatus": "NONE",
+          "fevInfo": null,
+          "adId": null,
+          "targetedOrReachedCountries": []
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "pageInfo": {
+            "adLibrarySystemStatus": {
+              "systemStatus": {
+                "status": "NO_KNOWN_ISSUES",
+                "activeIssues": []
+              }
+            },
+            "adLibraryPageInfo": {
+              "pageInfo": {
+                "relatedPages": [],
+                "hasBlankAds": false,
+                "hiddenAds": 0,
+                "pageIsDeleted": false
+              }
+            },
+            "page": {
+              "name": "SO Sofitel Hua Hin",
+              "id": "1706839996218380"
+            },
+            "adLibraryUser": null
+          },
+          "pageID": "1706839996218380",
+          "adArchiveID": "1504305823861164",
+          "startDateFormatted": "2025-04-27T07:00:00.000Z",
+          "endDateFormatted": "2025-10-28T07:00:00.000Z",
+          "adArchiveId": "1504305823861164",
+          "collationCount": 2,
+          "collationId": "1832280250953041",
+          "pageId": "1706839996218380",
+          "snapshot": {
+            "brandedContent": null,
+            "pageId": "1706839996218380",
+            "pageIsDeleted": false,
+            "pageProfileUri": "https://www.facebook.com/SOSofitelHuaHin/",
+            "rootResharedPost": null,
+            "byline": null,
+            "disclaimerLabel": null,
+            "pageName": "SO Sofitel Hua Hin",
+            "pageProfilePictureUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/493278317_1364865321427752_3123798587324846305_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rBTAdUmCUNAQ7kNvwHtApu0&_nc_oc=AdnsfqaUdufLZOGkUOUduutjwQTWHvCx3ik5mYJHMUbz-UB4mnfA7hukHnXB-K0CT3iJUDxRQUwS8xO1pgdq_uuI&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afv7WbaxBo40RsyRulBG0kyvcFJ6QNLEExo2ZuSgysrNPw&oe=698379CC",
+            "event": null,
+            "caption": "so-sofitel-huahin.com",
+            "ctaText": "Book now",
+            "cards": [
+              {
+                "body": "From USD124++",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD124++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Family Escape",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492515842_3451864108277998_5529370758157609069_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=MZ0Zi6So5OwQ7kNvwGhmY3U&_nc_oc=Adlccy758Fr-n1RjolqVW7VL_kPU-xzd8eyb0Y4GF-U4DHJf4PGJWKQJR6qoJ2a3qtgCrw4ngX3RJYTMd45aTLfV&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfvD351H28AwfSC5BWNdxdF8_FnPILsnh0A_4-RNECxjQA&oe=698381E1",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/493323688_656189387303409_1014866337190590000_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=X70CVIGA4csQ7kNvwF5QogY&_nc_oc=AdkAC9l3ijMkyKQ2FCTMPOJGQWYAb5Xi3yPEa9scrb1PDNFg0xThxicKcANkz9j8jR_R4HeIVbxbpkRN2tEqmgGb&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afvl3m8TviaAtvQaq3wsKmdsPaoutexF7j90pAyuqV8W3Q&oe=69837753",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "From USD124++",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "From USD124++",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Couple Retreat",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/493823904_1236536574476246_4929706803353647066_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=KhzalsJrhYEQ7kNvwE1hA8z&_nc_oc=Adl0WtuujJYw0ANBcZjOUdODpCS1MRbMHKH9IROvu6XEpONe4geoKHD2BxRra0PN8OJDCuHe_FJGDjrbookzI31P&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AftFiIV7kEgr2ucwt4Rkwaq_07Te5NvVfokGK51qDacWHw&oe=69837AF5",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/491959622_1229579055185928_6594843755780166307_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=El3YZj2DbbsQ7kNvwF6e8J6&_nc_oc=AdlIvwjnwgAnJyFuamU8jitwU0TvvC2NBNia_aL_y5vLfFk5vzQkktD1_MiQ_d5ONl_8hIo-A2V_dxlCmvv19A2c&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afvf77-JQrd_Cxx36SA9A-uwsrnjenc6qvjvh1DBJO-NEA&oe=69835FE9",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Thai and International Flair",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Thai and International Flair",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Seaside Dining",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/493638118_4113722698948687_8815118299463093464_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=EsCig5i_8H0Q7kNvwH4cJO7&_nc_oc=AdnmR7jVLe7qjoFetvbf-eGkJ-FSH3D4QGOd6GvNluk-Z-ukOuXvPnTUQ5cx5K6VBBTLNpdoQpDkJQQwkWWnDtI6&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afsm_ZZgKcwq8GKiUNLea2VFxN-AsJfgeGVNCu0irxaoFQ&oe=698387BA",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/492303017_693250769929030_5902080800024872850_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=hVKFBLcdNPUQ7kNvwGd9Go8&_nc_oc=AdmZ9zbbNDCrIuYNhR2IcrsIritBlqrcL7w4gL8xDtS_7Lq25pY-6dkImukIuxgeFpQM6T4-EhAWQh6c4F1L_-qf&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afsg5_EejSU2QOn8klTT6DreFUaThcNxZZmtFRSEILP7vQ&oe=69838E0E",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Kids Club & Scooter",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Kids Club & Scooter",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Fun-filled Activities",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492426147_3928937734033338_3558759021357786607_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=4udN0BOItFYQ7kNvwFyQk16&_nc_oc=AdlemprKBm6rfBg0E7g-dKJ5-csJpm3N-VvGUz1v0LYg2r905IKEH-s4g4cGS0wYnkSx4MgYobhw5GgUO_00Wq0N&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfunzwdaLHQfw4zprFdvuaeCizIdPi0Eg0vkjujKBfv_Zw&oe=698383BA",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492160271_1116025583874209_7511220168497073497_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1cgI3PCNOU4Q7kNvwHuTdFs&_nc_oc=AdlAPTlY6-RteCmeYJC6Q60iYjnkOonrFLgDQHz5WPCHHGSdgONNI1aulOH98WJ6-Q5sqHi8LY03NU_18ruSCHWk&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuKWXB0vlsZBukKwcgvzvtbkeoW9o_guaVp1bSe6Z3Zeg&oe=698390EF",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "Wibit and Wet Bubble",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "Wibit and Wet Bubble",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Pool Adventures",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492393009_1807953716603101_1994682210036939208_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=pIXi2WOOAucQ7kNvwHmsEZm&_nc_oc=Adk8WhVIQGAAxvUg5M4g44H9mLXIrLmgPONrh_Cl9VB0P4eU2RQClb0aHAj9Mijmzo9ogMBKKlROvK5Zu2i6B7OA&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsCNVU5oZvtzrq09CPAPSmrfxCu6Z3I43rkxEcmYqy6ww&oe=69835FA2",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/492029670_1036991167819477_6710515136933310759_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=KI3TdlGsIuMQ7kNvwESoEkM&_nc_oc=Adn4ows8xZTKMOvEgW2mes5TjlzDVzL1lXlSuyLVeUj8NYUGB0SPcrBleJj8U9mq6e44DpfAd7vn2rhUMamjZP8u&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfveSRCqx2oBfb81QtbfpxrnXPLfgD6bPoPl9-HG4pqRkw&oe=69836736",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "SO/ Spa",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "SO/ Spa",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "Wellness Retreat",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492249566_1426540092121833_8918392639428879841_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=p_QYmccVCCgQ7kNvwGbpEej&_nc_oc=AdldnqIwMdbJRa9j6MjJLmemKcJkdYTMPuSCoXYXI_EGdy8UgfHyslHPy4k5bzEyJOHwmi6bfxmG_8kuVG3vG_DG&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfuRMDYCLW1oz2-Lqp8o3twoGRC3ET0QpWq3lqUp1pgGRg&oe=698393DB",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/491998265_1181922899786991_153563520167777693_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=kWwYUX3qt-4Q7kNvwFuSPBy&_nc_oc=AdnBLKzo5Vnyi4NNGxb29XsVFEol_3uIyw5biyjnGIZVwP_8UG1bxIyVgo8X-NihmJaMSfuT-0HkruljCmqvMKD0&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afs3cl34b3mnA31rmlrJG-qUjzVEZcY7OJLt4oZYRGXSng&oe=698386B4",
+                "watermarkedResizedImageUrl": ""
+              }
+            ],
+            "body": {
+              "text": "Escape to a world where playful charm meets beachfront luxury at SO Sofitel Hua Hin, set along the tranquil Cha-Am coast. Dive into sun-drenched adventures with thrilling experiences like the Wibit Adventure Float, imaginative kids' zones, and peaceful relaxation spots for grown-ups—all crafted for unforgettable family fun.\n\nWhether you’re lounging in a stylish room or making memories in a private beachfront pool villa, every stay offers a perfect balance of sophistication and excitement. Discover why SO Sofitel Hua Hin is Thailand’s go-to destination for families seeking a getaway that’s anything but ordinary."
+            },
+            "ctaType": "BOOK_TRAVEL",
+            "displayFormat": "CAROUSEL",
+            "linkDescription": null,
+            "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.308984578;dc_trk_aid=501607023;dc_trk_cid=154430695;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+            "images": [],
+            "pageCategories": [
+              "Resort"
+            ],
+            "pageLikeCount": 101972,
+            "title": "SO Sofitel Hua Hin",
+            "videos": [],
+            "isReshared": false,
+            "extraLinks": [],
+            "extraTexts": [],
+            "extraImages": [],
+            "extraVideos": [],
+            "countryIsoCode": null,
+            "brazilTaxId": null,
+            "additionalInfo": null,
+            "ecCertificates": []
+          },
+          "isActive": false,
+          "hasUserReported": false,
+          "reportCount": null,
+          "menuItems": [],
+          "stateMediaRunLabel": null,
+          "pageIsDeleted": false,
+          "pageName": "SO Sofitel Hua Hin",
+          "impressionsWithIndex": {
+            "impressionsText": null,
+            "impressionsIndex": -1
+          },
+          "gatedType": "ELIGIBLE",
+          "categories": [
+            "UNKNOWN"
+          ],
+          "isAaaEligible": true,
+          "containsDigitalCreatedMedia": false,
+          "reachEstimate": null,
+          "currency": "",
+          "spend": null,
+          "endDate": 1761634800,
+          "publisherPlatform": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "startDate": 1745737200,
+          "containsSensitiveContent": false,
+          "totalActiveTime": null,
+          "regionalRegulationData": {
+            "finserv": {
+              "isDeemedFinserv": false,
+              "isLimitedDelivery": false
+            },
+            "twAntiScam": {
+              "isLimitedDelivery": false
+            }
+          },
+          "hideDataStatus": "NONE",
+          "fevInfo": null,
+          "adId": null,
+          "targetedOrReachedCountries": []
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "inputUrl": "https://www.facebook.com/SOSofitelHuaHin",
+          "pageInfo": {
+            "adLibrarySystemStatus": {
+              "systemStatus": {
+                "status": "NO_KNOWN_ISSUES",
+                "activeIssues": []
+              }
+            },
+            "adLibraryPageInfo": {
+              "pageInfo": {
+                "relatedPages": [],
+                "hasBlankAds": false,
+                "hiddenAds": 0,
+                "pageIsDeleted": false
+              }
+            },
+            "page": {
+              "name": "SO Sofitel Hua Hin",
+              "id": "1706839996218380"
+            },
+            "adLibraryUser": null
+          },
+          "pageID": "1706839996218380",
+          "adArchiveID": "9565022596938547",
+          "startDateFormatted": "2025-04-27T07:00:00.000Z",
+          "endDateFormatted": "2025-10-27T07:00:00.000Z",
+          "adArchiveId": "9565022596938547",
+          "collationCount": 1,
+          "collationId": "1851196682416317",
+          "pageId": "1706839996218380",
+          "snapshot": {
+            "brandedContent": null,
+            "pageId": "1706839996218380",
+            "pageIsDeleted": false,
+            "pageProfileUri": "https://www.facebook.com/SOSofitelHuaHin/",
+            "rootResharedPost": null,
+            "byline": null,
+            "disclaimerLabel": null,
+            "pageName": "SO Sofitel Hua Hin",
+            "pageProfilePictureUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/492554726_1643608323016334_2341160964832806467_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Kcn53p264F4Q7kNvwGf7Nnm&_nc_oc=AdmnwqILKw6zrMLu2fT1V26ouxj8AeLdO9dEDfaiqRkSrqBEmtUI3W_Yk3xaJAV5gdH2fJrHwAj3IXzyeoAB3XWH&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AftTdIqPCGVxhktgCZSDTTE4l3odEXH0be5lOq5_xQIXAg&oe=69836017",
+            "event": null,
+            "caption": "so-sofitel-huahin.com",
+            "ctaText": "Book now",
+            "cards": [
+              {
+                "body": "โซ โซฟิเทล หัวหิน โรงแรมริมชายหาดชะอำที่ผสมผสานความหรูหรา ความสนุก และดีไซน์สุดล้ำไว้อย่างลงตัว พร้อมมอบประสบการณ์การพักผ่อนที่เหนือระดับสำหรับทุกคนในครอบครัว สนุกไปกับสระว่ายน้ำ 4 แบบ พื้นที่เล่นสำหรับเด็ก สนามมินิกอล์ฟ และ Wibit Adventure Float กลางน้ำสุดมันส์ที่หาที่ไหนไม่ได้\n\nให้ทุกช่วงเวลาของคุณเป็นมากกว่าการพักผ่อนริมทะเล เติมเต็มวันหยุดด้วยกิจกรรมสุดพิเศษ และข้อเสนอสุดคุ้มที่จะเปลี่ยนการพักผ่อนธรรมดาให้กลายเป็นความทรงจำแสนประทับใจ จองตอนนี้เพื่อรับข้อเสนอที่ดีที่สุด!",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "เริ่ม 4,240++บาท",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.377021257;dc_trk_aid=567940954;dc_trk_cid=200509470;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "โซ โซฟิเทล หัวหิน",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/494025623_1723067485312577_7890062351710614038_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=hiZAomf1EBQQ7kNvwE93dat&_nc_oc=Adn7Px9MBOF1SmeWVbdZJdwrdqI8XTLZ8EH6oi0B14zuJ3A5VnimB6csvECrqLqX1dS_sZrzocPKcUcpB0A6rr6m&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_Afs7iMZbGlB5WLKBIKzbPT1En7P5ECGh271vq0hOgY4Z1w&oe=6983698B",
+                "resizedImageUrl": "https://scontent-iad3-1.xx.fbcdn.net/v/t39.35426-6/492443480_2155520578253522_2855494748878194132_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=k_IQMCi48NYQ7kNvwGYtLCc&_nc_oc=Adkq3M6phqWQJDy-wx8BZHpHO4R7n798wy4_8Jnu55r-pi1-HObBK_Me732q4a3uzd9kT3NGwvI8jQtEtRxKHA-E&_nc_zt=14&_nc_ht=scontent-iad3-1.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AftMnZ7r6wkvBRcug-UGa_Aabq-q6dMo9Y-3hHBsj_wiZQ&oe=698382A5",
+                "watermarkedResizedImageUrl": ""
+              },
+              {
+                "body": "โซ โซฟิเทล หัวหิน โรงแรมริมชายหาดชะอำที่ผสมผสานความหรูหรา ความสนุก และดีไซน์สุดล้ำไว้อย่างลงตัว พร้อมมอบประสบการณ์การพักผ่อนที่เหนือระดับสำหรับทุกคนในครอบครัว สนุกไปกับสระว่ายน้ำ 4 แบบ พื้นที่เล่นสำหรับเด็ก สนามมินิกอล์ฟ และ Wibit Adventure Float กลางน้ำสุดมันส์ที่หาที่ไหนไม่ได้\n\nให้ทุกช่วงเวลาของคุณเป็นมากกว่าการพักผ่อนริมทะเล เติมเต็มวันหยุดด้วยกิจกรรมสุดพิเศษ และข้อเสนอสุดคุ้มที่จะเปลี่ยนการพักผ่อนธรรมดาให้กลายเป็นความทรงจำแสนประทับใจ จองตอนนี้เพื่อรับข้อเสนอที่ดีที่สุด!",
+                "ctaType": "BOOK_TRAVEL",
+                "caption": "so-sofitel-huahin.com",
+                "linkDescription": "เริ่ม 4,240++บาท",
+                "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.377021257;dc_trk_aid=567940954;dc_trk_cid=200509470;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+                "title": "โซ โซฟิเทล หัวหิน",
+                "ctaText": "Book Now",
+                "videoHdUrl": null,
+                "videoPreviewImageUrl": null,
+                "videoSdUrl": null,
+                "watermarkedVideoHdUrl": null,
+                "watermarkedVideoSdUrl": null,
+                "imageCrops": [],
+                "originalImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/492581693_1025549166212269_1569461756785532249_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=NINdG3wV2j8Q7kNvwHWoPHG&_nc_oc=AdkuXsomLJrpVGwXMOYgbOatvW2Y8579_3v3QtDNEeas6x4puk9BnG_cW9bIBByRYtQ5C_3Y7LsbFBZs0-WaBs9A&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfukcARyjedOEjWjgVSzW4f5YG7hJe7y8iwvZsRKa-StxQ&oe=69838962",
+                "resizedImageUrl": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.35426-6/493557563_1734355440834890_7765913025348198117_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ut3fj8tvdD4Q7kNvwEoGDZG&_nc_oc=AdnUa3yywmO90fWlDs_wfsjm58FT5MWtXFNlHVbdkGj5HR5hflwBigkutnVJX3QlSZ6RGo9e3z6YodAkSddwFLMb&_nc_zt=14&_nc_ht=scontent-iad3-2.xx&_nc_gid=5y0fdX6PY5GU0WoBzXu0Fg&oh=00_AfsIcDuIuvmrWurfpgVRee8TqjWC0uvhmYrng2CWMvTWbA&oe=69836ACB",
+                "watermarkedResizedImageUrl": ""
+              }
+            ],
+            "body": {
+              "text": "{{product.brand}}"
+            },
+            "ctaType": "BOOK_TRAVEL",
+            "displayFormat": "DCO",
+            "linkDescription": "{{product.description}}",
+            "linkUrl": "https://ad.doubleclick.net/ddm/trackclk/N163801.2560713PROPERTYSOLUTIONS/B26215731.377021257;dc_trk_aid=567940954;dc_trk_cid=200509470;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1",
+            "images": [],
+            "pageCategories": [
+              "Resort"
+            ],
+            "pageLikeCount": 101972,
+            "title": "{{product.name}}",
+            "videos": [],
+            "isReshared": false,
+            "extraLinks": [],
+            "extraTexts": [],
+            "extraImages": [],
+            "extraVideos": [],
+            "countryIsoCode": null,
+            "brazilTaxId": null,
+            "additionalInfo": null,
+            "ecCertificates": []
+          },
+          "isActive": false,
+          "hasUserReported": false,
+          "reportCount": null,
+          "menuItems": [],
+          "stateMediaRunLabel": null,
+          "pageIsDeleted": false,
+          "pageName": "SO Sofitel Hua Hin",
+          "impressionsWithIndex": {
+            "impressionsText": null,
+            "impressionsIndex": -1
+          },
+          "gatedType": "ELIGIBLE",
+          "categories": [
+            "UNKNOWN"
+          ],
+          "isAaaEligible": true,
+          "containsDigitalCreatedMedia": false,
+          "reachEstimate": null,
+          "currency": "",
+          "spend": null,
+          "endDate": 1761548400,
+          "publisherPlatform": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "startDate": 1745737200,
+          "containsSensitiveContent": false,
+          "totalActiveTime": null,
+          "regionalRegulationData": {
+            "finserv": {
+              "isDeemedFinserv": false,
+              "isLimitedDelivery": false
+            },
+            "twAntiScam": {
+              "isLimitedDelivery": false
+            }
+          },
+          "hideDataStatus": "NONE",
+          "fevInfo": null,
+          "adId": null,
+          "targetedOrReachedCountries": []
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Message a model": [
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_09e0d10a87d97d6c00697da92036748193b7f12a74e73d3fc8",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "```json\n{\n  \"strategy\": \"เน้นสร้างภาพลักษณ์ของโรงแรมในฐานะแหล่งพักผ่อนสำหรับครอบครัวที่รวมความหรูหราและกิจกรรมสนุกไว้ด้วยกัน พร้อมกระตุ้นให้จองตรงผ่านโรงแรมเพื่อให้ได้ดีลที่ดีที่สุด\",\n  \"key_offer\": \"ที่พักหรูติดชายหาด พร้อมกิจกรรมสำหรับทั้งครอบครัว และข้อเสนอพิเศษเมื่อจองตรงกับโรงแรม\",\n  \"tone\": \"อบอุ่น เป็นมิตร และสร้างแรงบันดาลใจ เน้นความผูกพันในครอบครัวและการพักผ่อนที่เหนือระดับ\"\n}\n```"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Competitors_List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitors_List": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify : Facebook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Apify : Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Report": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTML Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "083b433e-a956-4018-91f3-f90586203642",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5b842cbf775571ba67e4c63c905d43a0013d780ec254358ef2b0df05d87423fb"
+  },
+  "id": "7T2CYBxHpuuf2V6YgYkWx",
+  "tags": []
+}

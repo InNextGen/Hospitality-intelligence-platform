@@ -1,0 +1,509 @@
+{
+  "name": "(ข) AI Competitor Research",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "3792b8bd-0702-4ea9-bad7-28ed8ad85656",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "=https://news.google.com/rss/search?q={{ encodeURIComponent('ข่าว Event กิจกรรม ท่องเที่ยว หัวหิน เชียงใหม่ ภูเก็ต') }}&hl=th-TH&gl=TH&ceid=TH:th",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        -96
+      ],
+      "id": "7e8c3fa8-0c17-4315-9216-1870c095554a",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1633519796,
+          "mode": "list",
+          "cachedResultName": "Keywords_Config",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=1633519796"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        208
+      ],
+      "id": "a89f49fd-5e7e-4c6b-b7d7-757a993817e9",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=คุณคือนักวิเคราะห์กลยุทธ์ธุรกิจโรงแรมและการท่องเที่ยวระดับเชี่ยวชาญ\n\nหน้าที่ของคุณคือวิเคราะห์ข่าวสารต่อไปนี้ ว่าจะส่งผลกระทบในเชิง 'โอกาส' (Opportunity) หรือ 'ความเสี่ยง' (Threat) ต่อธุรกิจโรงแรมและการท่องเที่ยวในพื้นที่ หัวหิน, เชียงใหม่ และภูเก็ต\n\nหัวข้อข่าว: \"{{ $json.title }}\"\nเนื้อหาข่าว: \"{{ $json.contentSnippet }}\"\n\n⚠️ คำสั่งสำคัญที่สุด (Strict Output Format):\nจงตอบกลับเป็นรูปแบบ JSON ที่ถูกต้องเท่านั้น ห้ามมีข้อความทักทาย ห้ามมีคำอธิบายใดๆ นอกเหนือจาก JSON และ ห้ามครอบด้วย Markdown code block (ห้ามพิมพ์ ``` หรือ ```json เด็ดขาด)\n\nให้ใช้โครงสร้างคีย์ JSON ตามนี้เท่านั้น:\n{\n  \"analysis\": \"สรุปการวิเคราะห์ผลกระทบสั้นๆ กระชับ ตรงประเด็น ไม่เกิน 2 บรรทัด\",\n  \"impact_score\": <ใส่ตัวเลข 1-10>,\n  \"sentiment\": \"<เลือกตอบแค่คำใดคำหนึ่ง: Positive, Negative หรือ Neutral>\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        -112
+      ],
+      "id": "ab5448e6-602f-4114-88b5-50c9a69202a2",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitor Research Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1633519796,
+          "mode": "list",
+          "cachedResultName": "News_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=1633519796"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('If').item.json.isoDate.split('T')[0] }}",
+            "Headline": "={{ $('If').item.json.title }}",
+            "Link": "={{ $('If').item.json.link }}",
+            "AI_Analysis": "={{ JSON.parse($('Basic LLM Chain').item.json.text).analysis }}",
+            "Impact_Score": "={{ JSON.parse($('Basic LLM Chain').item.json.text).impact_score }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Headline",
+              "displayName": "Headline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI_Analysis",
+              "displayName": "AI_Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Impact_Score",
+              "displayName": "Impact_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        -112
+      ],
+      "id": "6ad7df98-1dfe-493d-9d50-d0a3d909eb80",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "News",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Keyword"
+            },
+            {
+              "fieldLabel": "Location"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -96,
+        -224
+      ],
+      "id": "34be4cc6-96cc-4b7a-b435-566ff8d8e437",
+      "name": "On form submission",
+      "webhookId": "695ea3f0-c5b8-47ce-8f95-23579a72ef77",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        48
+      ],
+      "id": "f2b4e9d9-b6aa-4150-b824-106e6fa38934",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a83a70f9-e65d-4cd6-ae36-c5c5649455fd",
+              "leftValue": "={{ $json.isoDate }}",
+              "rightValue": "={{ $today.minus({ days: 365 }) }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        560,
+        -96
+      ],
+      "id": "6f01ab18-35eb-4d4a-ad0e-0eef300de851",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1536,
+        160
+      ],
+      "id": "576f2629-2fed-4f90-8c16-a7fe5d4ab351",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "7ToEoyTqlkBEa8Si",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "competitor-data",
+          "mode": "list",
+          "cachedResultName": "competitor-data"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        -112
+      ],
+      "id": "8f3cd643-8338-4929-97ac-c3f21be6e260",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "k2VcSYJAwb2bK7tP",
+          "name": "Non : PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "=หัวข้อข่าว: {{ $json.Headline }}\nวันที่: {{ $json.Date }}\nลิงก์อ้างอิง: {{ $json.Link }}\nบทวิเคราะห์ผลกระทบ: {{ $json.AI_Analysis }}\nระดับความรุนแรงของผลกระทบ (1-10): {{ $json.Impact_Score }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1712,
+        80
+      ],
+      "id": "75da82b8-0f42-4b2c-bcb7-71ddb0f7ee8b",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Competitors_List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ชีต1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        208
+      ],
+      "id": "342509f2-fcd5-486e-a356-0274820def22",
+      "name": "Competitors_List",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SijtmghmycMNEmaq",
+          "name": "Non : Google Sheets account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -96
+      ],
+      "id": "83cccd1e-127d-4cd4-a59e-5c1189510194",
+      "name": "Limit",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitors_List": {
+      "main": [
+        []
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Bangkok",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "f37709da-b8aa-4363-825e-d4325581c8cb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5b842cbf775571ba67e4c63c905d43a0013d780ec254358ef2b0df05d87423fb"
+  },
+  "id": "p-5e7080ygNYg2A0T0HYq",
+  "tags": []
+}
